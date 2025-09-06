@@ -5,13 +5,16 @@ public class LiftSimulator{
         Scanner sc =new Scanner(System.in);
 
         //hard coding the total number of floors for now
-        int maxFloors=10;
+        int maxFloors=8;
+
+        int minFloors=0;
 
         //Creating 4 lifts with liftId's and total floors
-        Lift lift1=new Lift(1,maxFloors);
-        Lift lift2=new Lift(2,maxFloors);
-        Lift lift3=new Lift(3,maxFloors);
-        Lift lift4=new Lift(4,maxFloors);
+        Lift lift1=new Lift(1, maxFloors, minFloors);
+        Lift lift2=new Lift(2, maxFloors, minFloors);
+        Lift lift3=new Lift(3, maxFloors, minFloors);
+        Lift lift4=new Lift(4, maxFloors, minFloors);
+
 
         //Created an instance for lift manager to handle User requests
         LiftManager liftManager=new LiftManager(maxFloors,lift1,lift2,lift3,lift4);
@@ -24,11 +27,11 @@ public class LiftSimulator{
 
         sc.nextLine();
 
+        System.out.println();
+        System.out.println("Type EXIT anytime to stop lift simulation.");
+        System.out.println("This building has floors "+minFloors+" to "+maxFloors);
+        System.out.println("Enter your current floor followed by destination floor:");
         while(true){
-            System.out.println();
-            System.out.println("Type EXIT anytime to stop lift simulation.");
-            System.out.println("This building has floors 1 to "+maxFloors);
-            System.out.println("Enter your current floor followed by destination floor:");
             String strCurrDes=sc.nextLine();
             String[] arrCurrAndDes=strCurrDes.split(" ");
             if(strCurrDes.equalsIgnoreCase("exit")){
@@ -51,7 +54,7 @@ public class LiftSimulator{
                     int desFloor=Integer.parseInt(arrCurrAndDes[1]);
                     int assignedLiftId=liftManager.handleLiftRequest(new LiftRequest(currFloor, desFloor));
                     System.out.println("Lift no "+ assignedLiftId +" has been assigned to you.");
-//                    break;
+                    break;
 
                 }catch(InvalidFloorException e){
                     System.out.println(e.getMessage());

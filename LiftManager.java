@@ -1,7 +1,7 @@
 import java.util.HashMap;
 import java.util.Map;
 
-class LiftManager{
+public class LiftManager{
     private int maxFloors;
     private Map<Integer, Lift> liftsMap;
 
@@ -19,8 +19,12 @@ class LiftManager{
                 || request.getToFloor()>maxFloors){
             throw new InvalidFloorException();
         }
+
+        //Have to handle null value response from findNearestLift method
         Lift nearestLift=findNearestLift(request.getFromFloor(),liftsMap);
-        nearestLift.requestLift(request);
+//        nearestLift.requestLift(request);
+        nearestLift.addDestination(request.getFromFloor());
+//        nearestLift.addDestination(request.getToFloor());
         return nearestLift.liftId;
     }
 
@@ -30,7 +34,6 @@ class LiftManager{
         Lift nearestLift=null;
         for(Lift lift:lifts.values()){
             int currDistance=LiftUtilityMethods.calculateDistance(maxFloors,fromFloor,lift.getCurrentFloor(),lift.state);
-//            System.out.println("currDistance--------------"+currDistance);
             if(currDistance<minDistance){
                 minDistance=currDistance;
                 nearestLift=lift;
