@@ -1,110 +1,211 @@
 import java.util.ArrayDeque;
-import java.util.Deque;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Queue;
 
-public class Lift extends Thread{
-    public final int liftId;
-    public LiftState state;
-    private final int minFloors;
-    private final int maxFloors;
+class Lift extends Thread {
+    final int liftId;
+    final int minFloor;
+    final int maxFloor;
     private int currentFloor;
-    private int passengerCount;
-    private final int capacity=6;
-    private Deque<Integer> destinationRequests=new ArrayDeque<>();
+    private LiftStates state;
 
-    private Deque<Integer> destinations=new ArrayDeque<>();
+    private int currentCapacity;
+    final private int totalCapacity;
 
-    private final long floorTravelTimeMs=3000;
-    private final long waitForPassengerMs=1000;
+    final long floorChangeTimeMs=3000;
+    final long boardingTimeMs=2000;
+    Queue<LiftRequest> requests = new ArrayDeque<>();
+    Map<Integer, Integer> pickUpRequests = new HashMap<>();
+    Map<Integer, Integer> dropOffRequests = new HashMap<>();
 
-    private volatile boolean running;
+    volatile boolean liftRunning = true;
+
+    public int getCurrentCapacity(){
+        return this.currentCapacity;
+    }
+    public int getTotalCapacity(){
+        return this.totalCapacity;
+    }
+    public LiftStates getCurrState(){
+        return this.state;
+    }
 
     public int getCurrentFloor(){
         return this.currentFloor;
     }
 
-    public Lift(int liftId, int maxFloors, int minFloors){
+    Lift(int liftId, int minFloor, int maxFloor, int totalCapacity){
         this.liftId=liftId;
-        this.state=LiftState.idle;
-        this.minFloors=minFloors;
-        this.maxFloors=maxFloors;
+        this.minFloor=minFloor;
+        this.maxFloor=maxFloor;
+        this.state=LiftStates.idle;
         this.currentFloor=0;
-        this.passengerCount=0;
-        this.running=true;
+        this.currentCapacity=0;
+        this.totalCapacity=totalCapacity;
     }
 
-    public void run(){
-        while(running){
-            if(!destinationRequests.isEmpty()){
-                System.out.println("Destinations size= "+destinations.size());
-                int destination=destinations.pop();
-                destinations.addLast(destination);
-                if(this.state==LiftState.goingUp && destination<this.currentFloor){
-//                    goToDestination(maxFloors);
+    public synchronized void addRequest(LiftRequest newRequest) {
+        requests.add(newRequest);
+    }
+
+    @Override
+    public void run() {
+        while (liftRunning) {
+
+            //Process any new requests
+            if (!requests.isEmpty()) {
+                LiftRequest req;
+                synchronized (this) {
+                    req = requests.poll();
                 }
-//                this.goToDestination(destination);
+                if (req != null) {
+                    processRequest(req);
+                }
+            }
+
+            //Handle pickups if lift is idle
+            if (!pickUpRequests.isEmpty() && state == LiftStates.idle) {
+                int nearestFloor = getNearestFloor(pickUpRequests);
+                pickUpPassenger(nearestFloor);
+            }
+
+            //Handle drop-offs if no pickups are pending
+            if (pickUpRequests.isEmpty() && !dropOffRequests.isEmpty() && state == LiftStates.idle) {
+                processRemainingDropOffRequest();
+            }
+
+            //Reset to idle if nothing to do
+            if (pickUpRequests.isEmpty() && dropOffRequests.isEmpty() && requests.isEmpty()) {
+                state = LiftStates.idle;
+            }
+
+            try {
+                Thread.sleep(200); //simulating time delay
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
         }
     }
 
-    public void goToDestination(int destination){
-        int distanceToDestination=LiftUtilityMethods.calculateDistance(maxFloors,destination,this.currentFloor,this.state);
+    private int getNearestFloor(Map<Integer, Integer> requestsMap) {
+        int nearestFloorToTheLift = -1;
+        int minDistance = Integer.MAX_VALUE;
 
-        System.out.println("MAKING THE LIFT GO TO: "+distanceToDestination);
-        int coveredDistance=0;
-
-        if(destination<this.currentFloor)
-            this.state=LiftState.goingDown;
-        else
-            this.state=LiftState.goingUp;
-        while(distanceToDestination-->0){
-
-            this.threadWait(this.floorTravelTimeMs);
-
-            coveredDistance++;
-            if(this.state==LiftState.goingDown){
-                this.currentFloor--;
-            }else{
-                this.currentFloor++;
-            }
-
-            //If any later requests involve lifts current floors as destination.
-            if(destinations.contains(this.currentFloor)){
-                this.threadWait(this.waitForPassengerMs);
-                destinations.remove(this.currentFloor);
-                this.liftArrivedAt(this.currentFloor);
+        for (Integer currentRequestFloor : requestsMap.keySet()) {
+            if (currentRequestFloor >= minFloor && currentRequestFloor <= maxFloor) {
+                int distance = Math.abs(currentRequestFloor - currentFloor);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    nearestFloorToTheLift = currentRequestFloor;
+                }
             }
         }
+        return nearestFloorToTheLift;
+    }
 
-        //Setting the state of lift to "idle" once all the requests are processed
-        if(destinations.isEmpty()){
-            this.state=LiftState.idle;
+    private void processRemainingDropOffRequest() {
+        while (!dropOffRequests.isEmpty()) {
+            int nearestFloorToTheLift = getNearestFloor(dropOffRequests);
+            dropOffPassenger(nearestFloorToTheLift);
         }
     }
 
-    public void liftArrivedAt(int floor){
-//        System.out.println("LIFT "+this.liftId+" ARRIVED AT "+floor);
+    private void dropOffPassenger(int dropOffFloor) {
+        while (currentFloor != dropOffFloor) {
+            if (currentFloor < dropOffFloor) {
+                moveUp();
+            } else {
+                moveDown();
+            }
+            checkForPickUpRequests();
+            checkForDropOffRequests();
+        }
+
+        // reached floor → drop passengers
+        checkForDropOffRequests();
+        state = LiftStates.idle;
     }
 
-    public void threadWait(long time){
+    private void processRequest(LiftRequest request) {
+        // update pickUpRequests
+        pickUpRequests.put(request.fromFloor,
+                pickUpRequests.getOrDefault(request.fromFloor, 0) + request.passengerCount);
+
+        // update dropOffRequests
+        dropOffRequests.put(request.toFloor,
+                dropOffRequests.getOrDefault(request.toFloor, 0) + request.passengerCount);
+    }
+
+    private void pickUpPassenger(int pickUpFloor) {
+        while (currentFloor != pickUpFloor) {
+            if (currentFloor < pickUpFloor) {
+                moveUp();
+            } else {
+                moveDown();
+            }
+            checkForPickUpRequests();
+            checkForDropOffRequests();
+        }
+
+        // reached floor → pick passengers
+        checkForPickUpRequests();
+        state = LiftStates.idle;
+    }
+
+    private void checkForDropOffRequests() {
+        if (dropOffRequests.containsKey(currentFloor)) {
+            int noOfPassengersToDropOff = dropOffRequests.get(currentFloor);
+            System.out.println("Dropping off " + noOfPassengersToDropOff +
+                    " passengers at " + currentFloor);
+            makeLiftThreadWait(boardingTimeMs);
+            dropOffRequests.remove(currentFloor); // ✅ remove entry after processing
+        }
+    }
+
+    private void checkForPickUpRequests() {
+        if (pickUpRequests.containsKey(currentFloor)) {
+            int noOfPassengersToPickUp = pickUpRequests.get(currentFloor);
+            System.out.println("Picking up " + noOfPassengersToPickUp +
+                    " passengers at " + currentFloor);
+            makeLiftThreadWait(boardingTimeMs);
+            pickUpRequests.remove(currentFloor); // ✅ remove entry after processing
+        }
+    }
+
+
+    private void moveUp() {
+        makeLiftThreadWait(floorChangeTimeMs);
+        currentFloor++;
+        state = LiftStates.goingUp;
+    }
+
+    private void moveDown() {
+        makeLiftThreadWait(floorChangeTimeMs);
+        currentFloor--;
+        state = LiftStates.goingDown;
+    }
+
+    public void makeLiftThreadWait(long time){
         try{
             Thread.sleep(time);
-        }catch(InterruptedException e){
-            System.out.println("Thread Interrupted");
+        }catch (Exception e){
+            System.out.println("Thread technical issue");
         }
     }
 
 
-    public void addDestination(int destination){
-        this.passengerCount++;
-        destinationRequests.addLast(destination);
+    public void stopLift(){
+        this.liftRunning=false;
     }
 
-    public void stopLift(){
-        this.running=false;
+    public void addPassengers(int passengerCount){
+        this.currentCapacity+=passengerCount;
     }
 
     @Override
     public String toString(){
-        return "Lift id: "+ liftId +", currentFloor: "+currentFloor+", state " +state;
+        return "Lift "+this.liftId+" is at "+this.currentFloor+" floor.";
     }
+
 }

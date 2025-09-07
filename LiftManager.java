@@ -1,5 +1,6 @@
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class LiftManager{
     private int maxFloors;
@@ -7,41 +8,85 @@ public class LiftManager{
 
     LiftManager(int maxFloors, Lift... lifts){
         this.maxFloors=maxFloors;
-        this.liftsMap=new HashMap<>();
+        this.liftsMap=new ConcurrentHashMap<>();
         for(Lift lift: lifts){
             this.liftsMap.put(lift.liftId,lift);
         }
     }
 
-    public int handleLiftRequest(LiftRequest request){
-        if(request.getFromFloor()<0 || request.getFromFloor()>maxFloors
-                || request.getToFloor()<0
-                || request.getToFloor()>maxFloors){
-            throw new InvalidFloorException();
+    public int handleLiftRequest(LiftRequest request) throws InvalidFloorException, LiftFullException {
+        // Floor validation
+        if (request.fromFloor < 0 || request.fromFloor > maxFloors
+                || request.toFloor < 0 || request.toFloor > maxFloors) {
+            throw new InvalidFloorException("Invalid floor in request");
         }
 
-        //Have to handle null value response from findNearestLift method
-        Lift nearestLift=findNearestLift(request.getFromFloor(),liftsMap);
-//        nearestLift.requestLift(request);
-        nearestLift.addDestination(request.getFromFloor());
-//        nearestLift.addDestination(request.getToFloor());
+        // Find suitable lift
+        Lift nearestLift = findNearestLift(request);
+        if (nearestLift == null) {
+            throw new LiftFullException("No available lift could handle this request");
+        }
+
+        synchronized (nearestLift) {
+            if (!canTakeRequest(nearestLift,request.passengerCount)) {
+                throw new LiftFullException("Lift " + nearestLift.liftId + " is full");
+            }
+            nearestLift.addPassengers(request.passengerCount);
+            nearestLift.addRequest(request);
+        }
+
         return nearestLift.liftId;
     }
 
+    private Lift findNearestLift(LiftRequest request) {
+        Lift nearestLift = null;
+        int minDistance = Integer.MAX_VALUE;
 
-    public Lift findNearestLift(int fromFloor, Map<Integer, Lift> lifts){
-        int minDistance=Integer.MAX_VALUE;
-        Lift nearestLift=null;
-        for(Lift lift:lifts.values()){
-            int currDistance=LiftUtilityMethods.calculateDistance(maxFloors,fromFloor,lift.getCurrentFloor(),lift.state);
-            if(currDistance<minDistance){
-                minDistance=currDistance;
-                nearestLift=lift;
+        for (Lift lift : liftsMap.values()) {
+            // Skip if lift has no room
+            if (!canTakeRequest(lift,request.passengerCount)) continue;
+
+            int distance = Math.abs(lift.getCurrentFloor() - request.fromFloor);
+
+            switch (lift.getCurrState()) {
+                case idle:
+                    // idle lifts are always candidates
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        nearestLift = lift;
+                    }
+                    break;
+
+                case goingUp:
+                    // request is upwards and lift is below or at fromFloor
+                    if (request.fromFloor >= lift.getCurrentFloor()
+                            && request.toFloor > request.fromFloor) {
+                        if (distance < minDistance) {
+                            minDistance = distance;
+                            nearestLift = lift;
+                        }
+                    }
+                    break;
+
+                case goingDown:
+                    // request is downwards and lift is above or at fromFloor
+                    if (request.fromFloor <= lift.getCurrentFloor()
+                            && request.toFloor < request.fromFloor) {
+                        if (distance < minDistance) {
+                            minDistance = distance;
+                            nearestLift = lift;
+                        }
+                    }
+                    break;
             }
         }
+
         return nearestLift;
     }
 
+    public boolean canTakeRequest(Lift lift,int passengerCount){
+        return (lift.getCurrentCapacity() + passengerCount) <= lift.getTotalCapacity();
+    }
     public void startLifts(){
         for (Lift lift: liftsMap.values()){
             new Thread(lift).start();
