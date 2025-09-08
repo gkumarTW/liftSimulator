@@ -4,6 +4,6 @@ class LiftFullException extends Exception {
     }
 
     public LiftFullException(){
-        super("Lift full");
+        super("Lift is full");
     }
 }

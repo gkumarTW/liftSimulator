@@ -83,12 +83,18 @@ public class LiftSimulator{
             }
 
             try{
-                int currentFloor=Integer.parseInt(combinedInputArr[0]);
+                int currentFloor;
+
+                //Taking G as ground-floor input and then storing it as zero
+                if(combinedInputArr[0].equalsIgnoreCase("g"))
+                    currentFloor=0;
+                else
+                    currentFloor=Integer.parseInt(combinedInputArr[0]);
                 int destinationFloor=Integer.parseInt(combinedInputArr[1]);
                 int passengerCount=Integer.parseInt(combinedInputArr[2]);
                 int assignedLiftId=liftManager.handleLiftRequest(new LiftRequest(currentFloor, destinationFloor, passengerCount));
                 System.out.println("Lift no "+ assignedLiftId +" has been assigned to you.");
-                break;
+//                break;
 
             }catch (NumberFormatException e){
                 System.out.println("Enter valid input");

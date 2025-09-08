@@ -15,18 +15,22 @@ class Lift extends Thread {
 
     final long floorChangeTimeMs=3000;
     final long boardingTimeMs=2000;
-    Queue<LiftRequest> requests = new ArrayDeque<>();
-    Map<Integer, Integer> pickUpRequests = new HashMap<>();
-    Map<Integer, Integer> dropOffRequests = new HashMap<>();
+    private Queue<LiftRequest> requests = new ArrayDeque<>();
+    private Map<Integer, Integer> pickUpRequests = new HashMap<>();
+    private Map<Integer, Integer> dropOffRequests = new HashMap<>();
 
     volatile boolean liftRunning = true;
 
+
+    //get methods for private class variables
     public int getCurrentCapacity(){
         return this.currentCapacity;
     }
+
     public int getTotalCapacity(){
         return this.totalCapacity;
     }
+
     public LiftStates getCurrState(){
         return this.state;
     }
@@ -35,6 +39,7 @@ class Lift extends Thread {
         return this.currentFloor;
     }
 
+    //Assigning initial values when an instance is created for this class
     Lift(int liftId, int minFloor, int maxFloor, int totalCapacity){
         this.liftId=liftId;
         this.minFloor=minFloor;
@@ -45,10 +50,12 @@ class Lift extends Thread {
         this.totalCapacity=totalCapacity;
     }
 
+    //used by LiftManager to make the lift process a request
     public synchronized void addRequest(LiftRequest newRequest) {
         requests.add(newRequest);
     }
 
+    //Thread method that will carry a loop which makes  thread running
     @Override
     public void run() {
         while (liftRunning) {
@@ -62,6 +69,9 @@ class Lift extends Thread {
                 if (req != null) {
                     processRequest(req);
                 }
+
+                //The above code is just a safer version to the below code, synchronize will not allow other threads to access this class until the block is executed
+//                processRequest(requests.poll());
             }
 
             //Handle pickups if lift is idle
@@ -80,6 +90,7 @@ class Lift extends Thread {
                 state = LiftStates.idle;
             }
 
+            //Delaying the thread for data in Collections(requests Queue or Map) to process
             try {
                 Thread.sleep(200); //simulating time delay
             } catch (InterruptedException e) {
@@ -88,6 +99,7 @@ class Lift extends Thread {
         }
     }
 
+    //this method is used to get the nearest floor to the lift from requests map(either pickUpRequests map or dropOffRequests map)
     private int getNearestFloor(Map<Integer, Integer> requestsMap) {
         int nearestFloorToTheLift = -1;
         int minDistance = Integer.MAX_VALUE;
@@ -104,6 +116,19 @@ class Lift extends Thread {
         return nearestFloorToTheLift;
     }
 
+
+    //This method will spread a LiftRequest into pickUpRequest and dropOffRequest
+    private void processRequest(LiftRequest request) {
+        // update pickUpRequests
+        pickUpRequests.put(request.fromFloor,
+                pickUpRequests.getOrDefault(request.fromFloor, 0) + request.passengerCount);
+
+        // update dropOffRequests
+        dropOffRequests.put(request.toFloor,
+                dropOffRequests.getOrDefault(request.toFloor, 0) + request.passengerCount);
+    }
+
+    //If any there are any pending dropOffRequests this method will process them.
     private void processRemainingDropOffRequest() {
         while (!dropOffRequests.isEmpty()) {
             int nearestFloorToTheLift = getNearestFloor(dropOffRequests);
@@ -111,6 +136,9 @@ class Lift extends Thread {
         }
     }
 
+    //MERGE THE BELOW TWO METHODS
+
+    //used to process drop off requests
     private void dropOffPassenger(int dropOffFloor) {
         while (currentFloor != dropOffFloor) {
             if (currentFloor < dropOffFloor) {
@@ -127,16 +155,7 @@ class Lift extends Thread {
         state = LiftStates.idle;
     }
 
-    private void processRequest(LiftRequest request) {
-        // update pickUpRequests
-        pickUpRequests.put(request.fromFloor,
-                pickUpRequests.getOrDefault(request.fromFloor, 0) + request.passengerCount);
-
-        // update dropOffRequests
-        dropOffRequests.put(request.toFloor,
-                dropOffRequests.getOrDefault(request.toFloor, 0) + request.passengerCount);
-    }
-
+    //used to process pick up requests
     private void pickUpPassenger(int pickUpFloor) {
         while (currentFloor != pickUpFloor) {
             if (currentFloor < pickUpFloor) {
@@ -153,6 +172,8 @@ class Lift extends Thread {
         state = LiftStates.idle;
     }
 
+
+    //process dropOffRequests if any exist in the lift's current floor
     private void checkForDropOffRequests() {
         if (dropOffRequests.containsKey(currentFloor)) {
             int noOfPassengersToDropOff = dropOffRequests.get(currentFloor);
@@ -163,6 +184,8 @@ class Lift extends Thread {
         }
     }
 
+
+    //process pickUpRequests if any exist in the lift's current floor
     private void checkForPickUpRequests() {
         if (pickUpRequests.containsKey(currentFloor)) {
             int noOfPassengersToPickUp = pickUpRequests.get(currentFloor);
@@ -173,19 +196,21 @@ class Lift extends Thread {
         }
     }
 
-
+    //make the lift move up
     private void moveUp() {
         makeLiftThreadWait(floorChangeTimeMs);
         currentFloor++;
         state = LiftStates.goingUp;
     }
 
+    //make the lift move down
     private void moveDown() {
         makeLiftThreadWait(floorChangeTimeMs);
         currentFloor--;
         state = LiftStates.goingDown;
     }
 
+    //Used to make the thread sleep for some time(replicating time taken for lift to cross a floor, time taken for the passenger to board the lift)
     public void makeLiftThreadWait(long time){
         try{
             Thread.sleep(time);
@@ -194,15 +219,22 @@ class Lift extends Thread {
         }
     }
 
+    //Checks if the lift can fit the passengers or not
+    public boolean canLiftFit(int passengerCount){
+        return this.currentCapacity+passengerCount > totalCapacity;
+    }
 
+    //End the thread
     public void stopLift(){
         this.liftRunning=false;
     }
 
+    //Increment the passenger count
     public void addPassengers(int passengerCount){
         this.currentCapacity+=passengerCount;
     }
 
+    //to use the class Lift for SOP
     @Override
     public String toString(){
         return "Lift "+this.liftId+" is at "+this.currentFloor+" floor.";
