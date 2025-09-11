@@ -70,8 +70,11 @@ class Lift extends Thread {
                     processRequest(req);
                 }
 
-                //The above code is just a safer version to the below code, synchronize will not allow other threads to access this class until the block is executed
-//                processRequest(requests.poll());
+                /* The above code is just a safer version to the below code, synchronize will not allow
+                 * other threads to access this class until the block is executed
+                 *
+                 * processRequest(requests.poll());
+                 */
             }
 
             //Handle pickups if lift is idle
@@ -99,7 +102,9 @@ class Lift extends Thread {
         }
     }
 
-    //this method is used to get the nearest floor to the lift from requests map(either pickUpRequests map or dropOffRequests map)
+    /* This method is used to get the nearest floor to the lift from requests map
+     * (either pickUpRequests map or dropOffRequests map)
+     */
     private int getNearestFloor(Map<Integer, Integer> requestsMap) {
         int nearestFloorToTheLift = -1;
         int minDistance = Integer.MAX_VALUE;
@@ -180,7 +185,8 @@ class Lift extends Thread {
             System.out.println("Dropping off " + noOfPassengersToDropOff +
                     " passengers at " + currentFloor);
             makeLiftThreadWait(boardingTimeMs);
-            dropOffRequests.remove(currentFloor); // ✅ remove entry after processing
+            dropOffRequests.remove(currentFloor); // remove entry after processing
+            currentCapacity-=noOfPassengersToDropOff;
         }
     }
 
@@ -190,9 +196,9 @@ class Lift extends Thread {
         if (pickUpRequests.containsKey(currentFloor)) {
             int noOfPassengersToPickUp = pickUpRequests.get(currentFloor);
             System.out.println("Picking up " + noOfPassengersToPickUp +
-                    " passengers at " + currentFloor);
+                    " passengers at " + (currentFloor==0?'G':currentFloor));
             makeLiftThreadWait(boardingTimeMs);
-            pickUpRequests.remove(currentFloor); // ✅ remove entry after processing
+            pickUpRequests.remove(currentFloor); // remove entry after processing
         }
     }
 
@@ -210,7 +216,9 @@ class Lift extends Thread {
         state = LiftStates.goingDown;
     }
 
-    //Used to make the thread sleep for some time(replicating time taken for lift to cross a floor, time taken for the passenger to board the lift)
+    /* Used to make the thread sleep for some time(replicating time taken
+     * for lift to cross a floor, time taken for the passenger to board the lift)
+     */
     public void makeLiftThreadWait(long time){
         try{
             Thread.sleep(time);
@@ -237,7 +245,8 @@ class Lift extends Thread {
     //to use the class Lift for SOP
     @Override
     public String toString(){
-        return "Lift "+this.liftId+" is at "+this.currentFloor+" floor.";
+        return "Lift "+this.liftId+" is at "+this.currentFloor+" floor with "
+                +this.currentCapacity+" passengers and current state is "+ this.state;
     }
 
 }
