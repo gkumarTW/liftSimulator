@@ -24,8 +24,16 @@ public class LiftSimulator{
         }
         return false;
     }
+
+    public static int[] inputLiftConfiguation(Scanner sc){
+        System.out.println("Please configure lifts: ");
+        System.out.println("Enter total number of lifts you want in the building: ");
+    }
+
     public static void main(String[] args){
         Scanner sc =new Scanner(System.in);
+
+        int[] liftConfigInputs=inputLiftConfiguation(sc);
 
         //hard coding the total number of floors for now
         int maxFloors=8;
@@ -60,7 +68,8 @@ public class LiftSimulator{
             System.out.println();
             System.out.println("Type EXIT anytime to stop lift simulation.");
             System.out.println("This building has floors "+minFloors+" to "+maxFloors);
-            System.out.println("Enter current floor followed by destination floor followed by no of people boarding(x y z):");
+            System.out.println("Enter current floor followed by destination " +
+                    "floor followed by no of people boarding(x y z):");
             String combinedInputStr=sc.nextLine();
 
             if(combinedInputStr.equalsIgnoreCase("exit")){
@@ -85,15 +94,22 @@ public class LiftSimulator{
             try{
                 int currentFloor;
 
-                //Taking G as ground-floor input and then storing it as zero
+                //Taking 'G' as ground-floor input and then storing it as zero
                 if(combinedInputArr[0].equalsIgnoreCase("g"))
                     currentFloor=0;
                 else
                     currentFloor=Integer.parseInt(combinedInputArr[0]);
                 int destinationFloor=Integer.parseInt(combinedInputArr[1]);
                 int passengerCount=Integer.parseInt(combinedInputArr[2]);
-                int assignedLiftId=liftManager.handleLiftRequest(new LiftRequest(currentFloor, destinationFloor, passengerCount));
+
+                if(currentFloor==destinationFloor)
+                    throw new InvalidFloorException("Pick up and drop off floors have to be different.");
+
+                int assignedLiftId=liftManager
+                        .handleLiftRequest(new LiftRequest(currentFloor, destinationFloor, passengerCount));
                 System.out.println("Lift no "+ assignedLiftId +" has been assigned to you.");
+
+                //USE THE BELOW BREAK TO EXECUTE ONLY ONE USER INPUT CASE
 //                break;
 
             }catch (NumberFormatException e){
