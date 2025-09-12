@@ -1,7 +1,4 @@
-import java.util.ArrayDeque;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 
 class Lift extends Thread {
     final int liftId;
@@ -16,21 +13,31 @@ class Lift extends Thread {
     final long floorChangeTimeMs=3000;
     final long boardingTimeMs=2000;
     private Queue<LiftRequest> requests = new ArrayDeque<>();
+    //The below hashmap's will hold key as their floor and passengersCount as their value
     private Map<Integer, Integer> pickUpRequests = new HashMap<>();
-    private Map<Integer, Integer> dropOffRequests = new HashMap<>();
+    private Map<Integer, Integer> activeDropOffRequests = new HashMap<>();
+
+    //The below hashmap will hold pick up floor as key and a list of pendingDropOffRequests
+    private Map<Integer, List<DropOffRequest>> pendingDropOffRequests=new HashMap<>();
+
+    private class DropOffRequest{
+        final int dropOffFloor;
+        final int passengerCount;
+        DropOffRequest(int dropOffFloor, int passengerCount){
+            this.dropOffFloor=dropOffFloor;
+            this.passengerCount=passengerCount;
+        }
+    }
 
     volatile boolean liftRunning = true;
-
 
     //get methods for private class variables
     public int getCurrentCapacity(){
         return this.currentCapacity;
     }
-
     public int getTotalCapacity(){
         return this.totalCapacity;
     }
-
     public LiftStates getCurrState(){
         return this.state;
     }
@@ -51,7 +58,11 @@ class Lift extends Thread {
     }
 
     //used by LiftManager to make the lift process a request
-    public synchronized void addRequest(LiftRequest newRequest) {
+    public synchronized void addRequest(LiftRequest newRequest) throws
+            RequestFloorsOutOfRangeException {
+        if(newRequest.toFloor<this.minFloor || newRequest.fromFloor<this.minFloor
+                || newRequest.toFloor>this.maxFloor || newRequest.fromFloor>this.maxFloor)
+            throw new RequestFloorsOutOfRangeException("Requested lift out of buildings range");
         requests.add(newRequest);
     }
 
@@ -84,12 +95,12 @@ class Lift extends Thread {
             }
 
             //Handle drop-offs if no pickups are pending
-            if (pickUpRequests.isEmpty() && !dropOffRequests.isEmpty() && state == LiftStates.idle) {
+            if (pickUpRequests.isEmpty() && !activeDropOffRequests.isEmpty() && state == LiftStates.idle) {
                 processRemainingDropOffRequest();
             }
 
             //Reset to idle if nothing to do
-            if (pickUpRequests.isEmpty() && dropOffRequests.isEmpty() && requests.isEmpty()) {
+            if (pickUpRequests.isEmpty() && activeDropOffRequests.isEmpty() && requests.isEmpty()) {
                 state = LiftStates.idle;
             }
 
@@ -103,7 +114,7 @@ class Lift extends Thread {
     }
 
     /* This method is used to get the nearest floor to the lift from requests map
-     * (either pickUpRequests map or dropOffRequests map)
+     * (either pickUpRequests map or activeDropOffRequests map)
      */
     private int getNearestFloor(Map<Integer, Integer> requestsMap) {
         int nearestFloorToTheLift = -1;
@@ -121,22 +132,26 @@ class Lift extends Thread {
         return nearestFloorToTheLift;
     }
 
-
     //This method will spread a LiftRequest into pickUpRequest and dropOffRequest
     private void processRequest(LiftRequest request) {
         // update pickUpRequests
         pickUpRequests.put(request.fromFloor,
                 pickUpRequests.getOrDefault(request.fromFloor, 0) + request.passengerCount);
 
-        // update dropOffRequests
-        dropOffRequests.put(request.toFloor,
-                dropOffRequests.getOrDefault(request.toFloor, 0) + request.passengerCount);
+        // update pendingDropOffRequests
+        if(pendingDropOffRequests.containsKey(request.fromFloor)){
+            List<DropOffRequest> dropOffRequestsList=pendingDropOffRequests.get(request.fromFloor);
+            dropOffRequestsList.add(new DropOffRequest(request.toFloor,request.passengerCount));
+        }else{
+            pendingDropOffRequests.put(request.fromFloor, new ArrayList<>
+                    (List.of(new DropOffRequest(request.toFloor, request.passengerCount))));
+        }
     }
 
-    //If any there are any pending dropOffRequests this method will process them.
+    //If any there are any pending activeDropOffRequests this method will process them.
     private void processRemainingDropOffRequest() {
-        while (!dropOffRequests.isEmpty()) {
-            int nearestFloorToTheLift = getNearestFloor(dropOffRequests);
+        while (!activeDropOffRequests.isEmpty()) {
+            int nearestFloorToTheLift = getNearestFloor(activeDropOffRequests);
             dropOffPassenger(nearestFloorToTheLift);
         }
     }
@@ -178,14 +193,14 @@ class Lift extends Thread {
     }
 
 
-    //process dropOffRequests if any exist in the lift's current floor
+    //process activeDropOffRequests if any exist in the lift's current floor
     private void checkForDropOffRequests() {
-        if (dropOffRequests.containsKey(currentFloor)) {
-            int noOfPassengersToDropOff = dropOffRequests.get(currentFloor);
+        if (activeDropOffRequests.containsKey(currentFloor)) {
+            int noOfPassengersToDropOff = activeDropOffRequests.get(currentFloor);
             System.out.println("Dropping off " + noOfPassengersToDropOff +
                     " passengers at " + currentFloor);
             makeLiftThreadWait(boardingTimeMs);
-            dropOffRequests.remove(currentFloor); // remove entry after processing
+            activeDropOffRequests.remove(currentFloor); // remove entry after processing
             currentCapacity-=noOfPassengersToDropOff;
         }
     }
@@ -198,6 +213,13 @@ class Lift extends Thread {
             System.out.println("Picking up " + noOfPassengersToPickUp +
                     " passengers at " + (currentFloor==0?'G':currentFloor));
             makeLiftThreadWait(boardingTimeMs);
+
+            //HAVE TO MOVE PENDING DROP OFF REQUESTS TO ACTIVE DROP OFF REQUESTS
+            //Thinking to generate a unique id for every request using Date and time.
+
+//            if(pendingDropOffRequests.containsKey(currentFloor)){
+//                pendingDropOffRequests.get()
+//            }
             pickUpRequests.remove(currentFloor); // remove entry after processing
         }
     }
@@ -229,7 +251,7 @@ class Lift extends Thread {
 
     //Checks if the lift can fit the passengers or not
     public boolean canLiftFit(int passengerCount){
-        return this.currentCapacity+passengerCount > totalCapacity;
+        return this.currentCapacity+passengerCount <= totalCapacity;
     }
 
     //End the thread
@@ -246,7 +268,7 @@ class Lift extends Thread {
     @Override
     public String toString(){
         return "Lift "+this.liftId+" is at "+this.currentFloor+" floor with "
-                +this.currentCapacity+" passengers and current state is "+ this.state;
+                +this.currentCapacity+" passengers and current state is "+ this.state+" ("+this.minFloor+ ", "+this.maxFloor+ ", "+this.totalCapacity+")";
     }
 
 }
