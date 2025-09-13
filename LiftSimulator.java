@@ -59,12 +59,19 @@ public class LiftSimulator{
                 int destinationFloor=Integer.parseInt(combinedInputArr[1]);
                 int passengerCount=Integer.parseInt(combinedInputArr[2]);
 
+                //Check if a single lift can accommodate requested passenger count
                 if(passengerCount> liftManager.getMaxCapacityOfLifts() || passengerCount<=0){
                     throw new InvalidInputException("A single lift cannot fit the requested no of passengers.");
                 }
 
+                //Check if the request from and to floors are not equal
                 if(currentFloor==destinationFloor)
                     throw new InvalidInputException("Pick up and drop off floors have to be different.");
+
+                //Check if the request from and to floors are within lift serviceable floors
+                if (currentFloor>liftManager.getServiceFloors()||destinationFloor>liftManager.getServiceFloors())
+                    throw new InvalidInputException("Lift cannot service to requested floors.");
+
 
                 int assignedLiftId=liftManager
                         .handleLiftRequest(new LiftRequest(currentFloor, destinationFloor, passengerCount));

@@ -152,8 +152,8 @@ public class LiftManager {
 
         for (Lift lift : liftsList) {
             //check if request from and to floor is within this lift's limit
-            if(lift.minFloor<request.fromFloor || lift.minFloor<request.toFloor
-                    || lift.maxFloor< request.fromFloor || lift.maxFloor<request.toFloor)
+            if(request.fromFloor<lift.minFloor || request.toFloor<lift.minFloor
+                    || request.fromFloor>lift.maxFloor || request.toFloor>lift.maxFloor)
                 continue;
 
 
