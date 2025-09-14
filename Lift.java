@@ -220,16 +220,18 @@ class Lift extends Thread {
             //HAVE TO MOVE PENDING DROP OFF REQUESTS TO ACTIVE DROP OFF REQUESTS
             //Thinking to generate a unique id for every request using Date and time.
 
-            if (pendingDropOffRequests.containsKey(currentFloor)) {
-                List<DropOffRequest> pendingDropOffRequestsList = pendingDropOffRequests.get(currentFloor);
+            if (pendingDropOffRequests.containsKey(this.currentFloor)) {
+                List<DropOffRequest> pendingDropOffRequestsList = pendingDropOffRequests.get(this.currentFloor);
                 for (DropOffRequest dropOffRequest : pendingDropOffRequestsList) {
                     activeDropOffRequests.put(dropOffRequest.dropOffFloor,
                             activeDropOffRequests.getOrDefault
                                     (dropOffRequest.dropOffFloor, 0) + dropOffRequest.passengerCount);
                 }
+                pendingDropOffRequestsList.remove(this.currentFloor);
             }
             pickUpRequests.remove(currentFloor); // remove entry after processing
         }
+
     }
 
     //make the lift move up

@@ -3,7 +3,7 @@ class LiftFullException extends Exception {
         super(message);
     }
 
-    public LiftFullException(){
+    public LiftFullException() {
         super("Lift is full please try after some time");
     }
 }
