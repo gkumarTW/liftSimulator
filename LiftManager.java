@@ -3,118 +3,123 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class LiftManager {
     private int totalLifts;
-    private int minFloor=0;//In the building
+    private int minFloor = 0;//In the building
     private int maxFloor;//In the building
     private int serviceFloors;
     private int maxLiftsCapacity;
-    private List<Lift> liftsList=new LinkedList<>();
-    
+    private List<Lift> liftsList = new LinkedList<>();
+
     //get methods for private variables
-    public int getTotalLifts(){
+    public int getTotalLifts() {
         return this.totalLifts;
     }
-    public int getMinFloor(){
+
+    public int getMinFloor() {
         return this.minFloor;
     }
-    public int getMaxFloor(){
+
+    public int getMaxFloor() {
         return this.maxFloor;
     }
-    public int getServiceFloors(){
+
+    public int getServiceFloors() {
         return this.serviceFloors;
     }
-    public int getMaxCapacityOfLifts(){
+
+    public int getMaxCapacityOfLifts() {
         return this.maxLiftsCapacity;
     }
 
-    LiftManager(){}
-    
+    LiftManager() {
+    }
+
     LiftManager(int maxFloor, Lift... lifts) {
         this.maxFloor = maxFloor;
         this.liftsList = new LinkedList<>();
         this.liftsList.addAll(Arrays.asList(lifts));
     }
 
-    LiftManager(int maxFloor, List<Lift> lifts){
+    LiftManager(int maxFloor, List<Lift> lifts) {
         //A LinkedList should hold all the lifts
-        this.liftsList=new LinkedList<>(lifts);
+        this.liftsList = new LinkedList<>(lifts);
     }
 
-    public void inputBuildingConfiguration(Scanner sc){
+    public void inputBuildingConfiguration(Scanner sc) {
         System.out.println("Please configure the building...");
-        
-        while(true){
+
+        while (true) {
             System.out.println("Enter total floors:");
-            int maxFloorInput=sc.nextInt();
-            if(maxFloorInput<0){
+            int maxFloorInput = sc.nextInt();
+            if (maxFloorInput < 0) {
                 System.out.println("Invalid input");
                 continue;
             }
-            this.maxFloor=maxFloorInput;
+            this.maxFloor = maxFloorInput;
             break;
         }
-        while(true){
+        while (true) {
             System.out.println("Number of lifts: ");
-            int totalLiftsCount=sc.nextInt();
-            if(totalLiftsCount<0){
+            int totalLiftsCount = sc.nextInt();
+            if (totalLiftsCount < 0) {
                 System.out.println("Invalid input");
                 continue;
             }
-            this.totalLifts=totalLiftsCount;
+            this.totalLifts = totalLiftsCount;
             break;
         }
     }
 
-    public void inputLifts(Scanner sc){
-        int maxFloorLiftCanService=0;
-        int maxCapacityOfLifts=0;
-        while(liftsList.size()!=totalLifts){
-            int currentLiftId=liftsList.size()+1;
-            System.out.println("Configure lift "+currentLiftId);
+    public void inputLifts(Scanner sc) {
+        int maxFloorLiftCanService = 0;
+        int maxCapacityOfLifts = 0;
+        while (liftsList.size() != totalLifts) {
+            int currentLiftId = liftsList.size() + 1;
+            System.out.println("Configure lift " + currentLiftId);
             int currentLiftMaxFloor, currentLiftMinFloor, currentLiftMaxCapacity;
-            while(true){
-                try{
+            while (true) {
+                try {
                     System.out.println("Max floors for this lift:");
-                    int input=sc.nextInt();
-                    if(input>maxFloor || input<=0)
+                    int input = sc.nextInt();
+                    if (input > maxFloor || input <= 0)
                         throw new InvalidInputException();
-                    currentLiftMaxFloor=input;
+                    currentLiftMaxFloor = input;
                     break;
-                }catch (Exception e){
+                } catch (Exception e) {
                     System.out.println(e.getMessage());
                 }
             }
 
-            while(true){
-                try{
+            while (true) {
+                try {
                     System.out.println("Max passengers for this lift:");
-                    int input=sc.nextInt();
-                    if(input<=0)
+                    int input = sc.nextInt();
+                    if (input <= 0)
                         throw new InvalidInputException();
-                    currentLiftMaxCapacity=input;
+                    currentLiftMaxCapacity = input;
                     break;
-                }catch(Exception e){
+                } catch (Exception e) {
                     System.out.println(e.getMessage());
                 }
             }
 
-            currentLiftMinFloor=0;
+            currentLiftMinFloor = 0;
 
-            Lift currentLift=new Lift(liftsList.size()+1,
+            Lift currentLift = new Lift(liftsList.size() + 1,
                     currentLiftMinFloor, currentLiftMaxFloor, currentLiftMaxCapacity);
 
             liftsList.add(currentLift);
 
-            System.out.println("Created lift with id: "+currentLift.liftId);
+            System.out.println("Created lift with id: " + currentLift.liftId);
 
-            if(currentLiftMaxFloor>maxFloorLiftCanService)
-                maxFloorLiftCanService=currentLiftMaxFloor;
+            if (currentLiftMaxFloor > maxFloorLiftCanService)
+                maxFloorLiftCanService = currentLiftMaxFloor;
 
-            if(currentLiftMaxCapacity>maxCapacityOfLifts)
-                maxCapacityOfLifts=currentLiftMaxCapacity;
+            if (currentLiftMaxCapacity > maxCapacityOfLifts)
+                maxCapacityOfLifts = currentLiftMaxCapacity;
         }
 
-        this.serviceFloors=maxFloorLiftCanService;
-        this.maxLiftsCapacity=maxCapacityOfLifts;
+        this.serviceFloors = maxFloorLiftCanService;
+        this.maxLiftsCapacity = maxCapacityOfLifts;
     }
 
 
@@ -152,8 +157,8 @@ public class LiftManager {
 
         for (Lift lift : liftsList) {
             //check if request from and to floor is within this lift's limit
-            if(request.fromFloor<lift.minFloor || request.toFloor<lift.minFloor
-                    || request.fromFloor>lift.maxFloor || request.toFloor>lift.maxFloor)
+            if (request.fromFloor < lift.minFloor || request.toFloor < lift.minFloor
+                    || request.fromFloor > lift.maxFloor || request.toFloor > lift.maxFloor)
                 continue;
 
 
@@ -212,8 +217,8 @@ public class LiftManager {
         }
     }
 
-    public void showLifts(){
-        for (Lift lift: liftsList){
+    public void showLifts() {
+        for (Lift lift : liftsList) {
             System.out.println(lift);
         }
     }

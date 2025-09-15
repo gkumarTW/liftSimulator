@@ -1,5 +1,5 @@
 public class InvalidFloorException extends RuntimeException {
-    public InvalidFloorException(){
+    public InvalidFloorException() {
         super("Invalid floor");
     }
 
@@ -8,7 +8,7 @@ public class InvalidFloorException extends RuntimeException {
     }
 
     @Override
-    public String getMessage(){
+    public String getMessage() {
         return "Invalid input! Please enter numbers within the building range.";
     }
 }
