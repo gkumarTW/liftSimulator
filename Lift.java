@@ -13,6 +13,11 @@ class Lift extends Thread {
     final long floorChangeTimeMs = 3000;
     final long boardingTimeMs = 2000;
     private Queue<LiftRequest> requests = new ArrayDeque<>();
+
+    /* THE BELOW HASHMAP'S CAN SIMPLY HOLD THE LiftRequest ITSELF AS VALUE, IN ORDER TO COMPLETELY
+     * REMOVE THE USAGE OF pendingDropOffRequests MAP
+     */
+
     //The below hashmap's will hold key as their floor and passengersCount as their value
     private Map<Integer, Integer> pickUpRequests = new HashMap<>();
     private Map<Integer, Integer> activeDropOffRequests = new HashMap<>();
