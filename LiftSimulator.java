@@ -56,7 +56,14 @@ public class LiftSimulator {
                 else
                     currentFloor = Integer.parseInt(combinedInputArr[0]);
 
-                int destinationFloor = Integer.parseInt(combinedInputArr[1]);
+                int destinationFloor;
+                //Taking 'G' as ground-floor input and then storing it as zero
+                if (combinedInputArr[1].equalsIgnoreCase("g"))
+                    destinationFloor=0;
+                else
+                    destinationFloor = Integer.parseInt(combinedInputArr[1]);
+
+
                 int passengerCount = Integer.parseInt(combinedInputArr[2]);
 
                 //Check if a single lift can accommodate requested passenger count

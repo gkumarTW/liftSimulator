@@ -1,20 +1,20 @@
-public class Lift extends AbstractLift{
-    private final String liftBrand="Normal";
-    private int totalCapacityLimit=10;
+public class ToshibaLift extends AbstractLift{
+    private final String liftBrand="Toshiba";
+    private int totalCapacityLimit=4;
 
     @Override
     public String getLiftBrand(){
         return this.liftBrand;
     }
     @Override
-    public int getTotalCapacityLimit() {
+    public int getTotalCapacityLimit(){
         return this.totalCapacityLimit;
     }
 
-    Lift(int liftId, int minFloor, int maxFloor, int totalCapacity){
-        super(liftId,minFloor,maxFloor,totalCapacity);
-        this.floorChangeTimeMs=2000;
-        this.boardingTimeMs=500;
+    ToshibaLift(int liftId, int minFloor, int maxFloor, int totalCapacity){
+        super(liftId, minFloor,maxFloor, totalCapacity);
+        this.floorChangeTimeMs=3500;
+        this.boardingTimeMs=1000;
     }
 
     //Thread method that will carry a loop which makes  thread running

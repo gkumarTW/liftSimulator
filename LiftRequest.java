@@ -8,4 +8,9 @@ class LiftRequest {
         this.fromFloor = fromFloor;
         this.toFloor = toFloor;
     }
+
+    @Override
+    public String toString(){
+        return "fromFloor: "+this.fromFloor+" toFloor: "+this.toFloor+" passengers: "+this.passengerCount;
+    }
 }
