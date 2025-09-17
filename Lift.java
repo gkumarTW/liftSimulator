@@ -21,10 +21,22 @@ public class Lift extends AbstractLift{
     @Override
     public void run() {
         while (liftRunning) {
-            this.processNewRequests();
-            this.handlePickUps();
-            this.handleDropOffs();
-            this.resetToIdle();
+
+            //Handle pickups if lift is idle
+            if (!pickUpRequests.isEmpty() && state == LiftStates.idle) {
+                int nearestFloor = getNearestFloor(pickUpRequests);
+                pickUpPassenger(nearestFloor);
+            }
+
+            //Handle drop-offs if no pickups are pending
+            if (pickUpRequests.isEmpty() && !activeDropOffRequests.isEmpty() && state == LiftStates.idle) {
+                processRemainingDropOffRequest();
+            }
+
+            //Reset to idle if nothing to do
+            if (pickUpRequests.isEmpty() && activeDropOffRequests.isEmpty() && requests.isEmpty()) {
+                state = LiftStates.idle;
+            }
 
             //Delaying the thread for data in Collections(requests Queue or Map) to process
             this.makeLiftThreadWait(200);

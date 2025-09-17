@@ -7,25 +7,25 @@ abstract class AbstractLift implements LiftI {
     final int minFloor;
     final int maxFloor;
     private int currentFloor;
-    private LiftStates state;
+    protected LiftStates state;
 
     private int currentCapacity;
     final private int totalCapacity;
 
     protected long floorChangeTimeMs = 3000;
     protected long boardingTimeMs = 2000;
-    private Queue<LiftRequest> requests = new ArrayDeque<>();
+    protected Queue<LiftRequest> requests = new ArrayDeque<>();
 
     /* THE BELOW HASHMAP'S CAN SIMPLY HOLD THE LiftRequest ITSELF AS VALUE, IN ORDER TO COMPLETELY
      * REMOVE THE USAGE OF pendingDropOffRequests MAP
      */
 
     //The below hashmap's will hold key as their floor and passengersCount as their value
-    private Map<Integer, Integer> pickUpRequests = new HashMap<>();
-    private Map<Integer, Integer> activeDropOffRequests = new HashMap<>();
+    protected Map<Integer, Integer> pickUpRequests = new HashMap<>();
+    protected Map<Integer, Integer> activeDropOffRequests = new HashMap<>();
 
     //The below hashmap will hold pick up floor as key and a list of pendingDropOffRequests
-    private Map<Integer, List<DropOffRequest>> pendingDropOffRequests = new HashMap<>();
+    protected Map<Integer, List<DropOffRequest>> pendingDropOffRequests = new HashMap<>();
 
     private class DropOffRequest {
         final int dropOffFloor;
@@ -103,67 +103,7 @@ abstract class AbstractLift implements LiftI {
                 || newRequest.toFloor > this.maxFloor || newRequest.fromFloor > this.maxFloor)
             throw new RequestFloorsOutOfRangeException("Requested lift out of buildings range");
         requests.add(newRequest);
-    }
-
-    protected void processNewRequests(){
-        //Process any new requests
-        if (!requests.isEmpty()) {
-            LiftRequest req;
-            synchronized (this) {
-                req = requests.poll();
-            }
-            if (req != null) {
-                processRequest(req);
-            }
-
-            /* The above code is just a safer version to the below code, synchronize will not allow
-             * other threads to access this class until the block is executed
-             *
-             * processRequest(requests.poll());
-             */
-        }
-    }
-
-    protected void handlePickUps(){
-        //Handle pickups if lift is idle
-        if (!pickUpRequests.isEmpty() && state == LiftStates.idle) {
-            int nearestFloor = getNearestFloor(pickUpRequests);
-            pickUpPassenger(nearestFloor);
-        }
-    }
-
-    protected void handleDropOffs(){
-        //Handle drop-offs if no pickups are pending
-        if (pickUpRequests.isEmpty() && !activeDropOffRequests.isEmpty() && state == LiftStates.idle) {
-            processRemainingDropOffRequest();
-        }
-    }
-
-    protected void resetToIdle(){
-        //Reset to idle if nothing to do
-        if (pickUpRequests.isEmpty() && activeDropOffRequests.isEmpty() && requests.isEmpty()) {
-            state = LiftStates.idle;
-        }
-    }
-
-
-    /* This method is used to get the nearest floor to the lift from requests map
-     * (either pickUpRequests map or activeDropOffRequests map)
-     */
-    protected int getNearestFloor(Map<Integer, Integer> requestsMap) {
-        int nearestFloorToTheLift = -1;
-        int minDistance = Integer.MAX_VALUE;
-
-        for (Integer currentRequestFloor : requestsMap.keySet()) {
-            if (currentRequestFloor >= minFloor && currentRequestFloor <= maxFloor) {
-                int distance = Math.abs(currentRequestFloor - currentFloor);
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    nearestFloorToTheLift = currentRequestFloor;
-                }
-            }
-        }
-        return nearestFloorToTheLift;
+        processRequest(newRequest);
     }
 
     //This method will spread a LiftRequest into pickUpRequest and dropOffRequest
@@ -188,6 +128,26 @@ abstract class AbstractLift implements LiftI {
             int nearestFloorToTheLift = getNearestFloor(activeDropOffRequests);
             dropOffPassenger(nearestFloorToTheLift);
         }
+    }
+
+
+    /* This method is used to get the nearest floor to the lift from requests map
+     * (either pickUpRequests map or activeDropOffRequests map)
+     */
+    protected int getNearestFloor(Map<Integer, Integer> requestsMap) {
+        int nearestFloorToTheLift = -1;
+        int minDistance = Integer.MAX_VALUE;
+
+        for (Integer currentRequestFloor : requestsMap.keySet()) {
+            if (currentRequestFloor >= minFloor && currentRequestFloor <= maxFloor) {
+                int distance = Math.abs(currentRequestFloor - currentFloor);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    nearestFloorToTheLift = currentRequestFloor;
+                }
+            }
+        }
+        return nearestFloorToTheLift;
     }
 
     //MERGE THE BELOW TWO METHODS
