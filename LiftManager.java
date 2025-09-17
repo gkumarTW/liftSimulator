@@ -7,7 +7,7 @@ public class LiftManager {
     private int maxFloor;//In the building
     private int serviceFloors;
     private int maxLiftsCapacity;
-    private List<Lift> liftsList = new LinkedList<>();
+    private List<LiftI> liftsList = new LinkedList<>();
 
     //get methods for private variables
     public int getTotalLifts() {
@@ -30,16 +30,17 @@ public class LiftManager {
         return this.maxLiftsCapacity;
     }
 
+    //Overloading constructors
     LiftManager() {
     }
 
-    LiftManager(int maxFloor, Lift... lifts) {
+    LiftManager(int maxFloor, LiftI... lifts) {
         this.maxFloor = maxFloor;
         this.liftsList = new LinkedList<>();
         this.liftsList.addAll(Arrays.asList(lifts));
     }
 
-    LiftManager(int maxFloor, List<Lift> lifts) {
+    LiftManager(int maxFloor, List<LiftI> lifts) {
         //A LinkedList should hold all the lifts
         this.liftsList = new LinkedList<>(lifts);
     }
@@ -73,6 +74,33 @@ public class LiftManager {
         int maxFloorLiftCanService = 0;
         int maxCapacityOfLifts = 0;
         while (liftsList.size() != totalLifts) {
+            char selectedOption;
+            sc.nextLine();
+            while(true){
+                try {
+                    System.out.println("Choose a lift brand to continue:");
+                    System.out.println("a. Normal");
+                    System.out.println("b. Toshiba");
+
+                    String input = sc.nextLine();
+                    if (input.isEmpty()) {
+                        throw new InvalidInputException("Input cannot be empty");
+                    }
+
+                    char optionInput = input.charAt(0);
+                    if (!(optionInput == 'a' || optionInput == 'b')) {
+                        throw new InvalidInputException("Please choose either 'a' or 'b'");
+                    }
+
+                    selectedOption = optionInput;
+                    break;
+
+                } catch (InvalidInputException e) {
+                    System.out.println(e.getMessage());
+                }
+
+            }
+
             int currentLiftId = liftsList.size() + 1;
             System.out.println("Configure lift " + currentLiftId);
             int currentLiftMaxFloor, currentLiftMinFloor, currentLiftMaxCapacity;
@@ -104,12 +132,19 @@ public class LiftManager {
 
             currentLiftMinFloor = 0;
 
-            Lift currentLift = new Lift(liftsList.size() + 1,
-                    currentLiftMinFloor, currentLiftMaxFloor, currentLiftMaxCapacity);
+            LiftI currentLift;
+            if (selectedOption == 'a') {
+                currentLift = new Lift(liftsList.size() + 1,
+                        currentLiftMinFloor, currentLiftMaxFloor, currentLiftMaxCapacity);
+            }else{
+                currentLift = new ToshibaLift(liftsList.size() + 1,
+                        currentLiftMinFloor, currentLiftMaxFloor, currentLiftMaxCapacity);
+            }
+
 
             liftsList.add(currentLift);
 
-            System.out.println("Created lift with id: " + currentLift.liftId);
+            System.out.println("Created "+ currentLift.getLiftBrand()+" lift with id: " + currentLift.getLiftId());
 
             if (currentLiftMaxFloor > maxFloorLiftCanService)
                 maxFloorLiftCanService = currentLiftMaxFloor;
@@ -135,7 +170,7 @@ public class LiftManager {
         /* Find suitable lift (dependencies are request's fromFloor, toFloor, passengerCount
          * and lift's currentCapacity, totalCapacity, state )
          */
-        Lift nearestLift = findNearestLift(request);
+        LiftI nearestLift = findNearestLift(request);
 
         //findNearestLift method will return null if no lift can fit the requested passengerCount
         if (nearestLift == null) {
@@ -145,20 +180,20 @@ public class LiftManager {
         nearestLift.addPassengers(request.passengerCount);
         nearestLift.addRequest(request);
 
-        return nearestLift.liftId;
+        return nearestLift.getLiftId();
     }
 
     /* This method will return the nearest lift to the requested fromFloor based on distance(that is going
      * towards the request toFloor or the lift that is idle)
      */
-    private Lift findNearestLift(LiftRequest request) {
-        Lift nearestLift = null;
+    private LiftI findNearestLift(LiftRequest request) {
+        LiftI nearestLift = null;
         int minDistance = Integer.MAX_VALUE;
 
-        for (Lift lift : liftsList) {
+        for (LiftI lift : liftsList) {
             //check if request from and to floor is within this lift's limit
-            if (request.fromFloor < lift.minFloor || request.toFloor < lift.minFloor
-                    || request.fromFloor > lift.maxFloor || request.toFloor > lift.maxFloor)
+            if (request.fromFloor < lift.getMinFloor() || request.toFloor < lift.getMinFloor()
+                    || request.fromFloor > lift.getMaxFloor() || request.toFloor > lift.getMaxFloor())
                 continue;
 
 
@@ -205,20 +240,20 @@ public class LiftManager {
 
     //method to start all the lifts inside the map
     public void startLifts() {
-        for (Lift lift : liftsList) {
+        for (LiftI lift : liftsList) {
             new Thread(lift).start();
         }
     }
 
     //method to stop all the lifts inside the map
     public void stopLifts() {
-        for (Lift lift : liftsList) {
+        for (LiftI lift : liftsList) {
             lift.stopLift();
         }
     }
 
     public void showLifts() {
-        for (Lift lift : liftsList) {
+        for (LiftI lift : liftsList) {
             System.out.println(lift);
         }
     }
