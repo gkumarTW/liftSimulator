@@ -28,7 +28,8 @@ public class LiftSimulator {
             System.out.println();
             System.out.println("Type 'EXIT' to quit or 'showLifts' to view lifts.");
             System.out.println("This building has floors " +
-                    (liftManager.getMinFloor() == 0 ? "G" : liftManager.getMinFloor()) + " to " + liftManager.getMaxFloor());
+                    (liftManager.getMinFloor() == 0 ? "G" : liftManager.getMinFloor()) +
+                    " to " + liftManager.getMaxFloor());
             System.out.println("Enter current floor, destination floor, passengers (e.g. 2 5 3):");
             String combinedInputStr = sc.nextLine();
 
