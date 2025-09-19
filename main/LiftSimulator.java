@@ -1,3 +1,8 @@
+package main;
+
+import exception.InvalidInputException;
+import utility.LiftRequest;
+
 import java.util.*;
 
 public class LiftSimulator {
@@ -5,7 +10,7 @@ public class LiftSimulator {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
 
-        //LiftManager is used to manage building, lifts and handle user lift requests
+        //main.LiftManager is used to manage building, lifts and handle user lift requests
         LiftManager liftManager = new LiftManager();
 
         //Taking input configuration from user
@@ -60,7 +65,7 @@ public class LiftSimulator {
                 int destinationFloor;
                 //Taking 'G' as ground-floor input and then storing it as zero
                 if (combinedInputArr[1].equalsIgnoreCase("g"))
-                    destinationFloor=0;
+                    destinationFloor = 0;
                 else
                     destinationFloor = Integer.parseInt(combinedInputArr[1]);
 

@@ -1,3 +1,5 @@
+package exception;
+
 public class RequestFloorsOutOfRangeException extends RuntimeException {
     public RequestFloorsOutOfRangeException(String message) {
         super(message);

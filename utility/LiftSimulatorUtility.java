@@ -1,3 +1,8 @@
+package utility;
+
+import exception.InvalidInputException;
+import lifts.brands.NormalLift;
+
 import java.util.List;
 import java.util.Scanner;
 
@@ -27,7 +32,7 @@ public class LiftSimulatorUtility {
         return false;
     }
 
-    public void inputLifts(Scanner sc, List<Lift> lifts, int totalNumberOfLifts, int maxFloor) {
+    public void inputLifts(Scanner sc, List<NormalLift> lifts, int totalNumberOfLifts, int maxFloor) {
         while (lifts.size() != totalNumberOfLifts) {
             int currentLiftId = lifts.size() + 1;
             System.out.println("Configure lift " + currentLiftId);
@@ -60,7 +65,7 @@ public class LiftSimulatorUtility {
 
             currentLiftMinFloor = 0;
 
-            Lift currentLift = new Lift(lifts.size() + 1,
+            NormalLift currentLift = new NormalLift(lifts.size() + 1,
                     currentLiftMinFloor, currentLiftMaxFloor, currentLiftMaxCapacity);
 
             lifts.add(currentLift);
