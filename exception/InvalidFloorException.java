@@ -1,3 +1,5 @@
+package exception;
+
 public class InvalidFloorException extends RuntimeException {
     public InvalidFloorException() {
         super("Invalid floor");

@@ -1,9 +1,11 @@
-class LiftRequest {
-    final int fromFloor;
-    final int toFloor;
-    final int passengerCount;
+package utility;
 
-    LiftRequest(int fromFloor, int toFloor, int passengerCount) {
+public class LiftRequest {
+    public final int fromFloor;
+    public final int toFloor;
+    public final int passengerCount;
+
+    public LiftRequest(int fromFloor, int toFloor, int passengerCount) {
         this.passengerCount = passengerCount;
         this.fromFloor = fromFloor;
         this.toFloor = toFloor;

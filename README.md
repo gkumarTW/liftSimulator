@@ -4,7 +4,7 @@ This document explains how the lift processes requests in the system, from when 
 
 1. Adding a Request
 
-  Method: addRequest(LiftRequest newRequest)
+  Method: addRequest(utility.LiftRequest newRequest)
   
   Flow:
     Validates the floors of the request.
@@ -13,11 +13,11 @@ This document explains how the lift processes requests in the system, from when 
 
 2. Handling a Request
 
-  Method: handleRequest(LiftRequest request)
+  Method: handleRequest(utility.LiftRequest request)
   
   Flow:
     Updates pickUpRequests for the pickup floor.
-    Creates a DropOffRequest in pendingDropOffRequests (associated with the pickup floor).
+    Creates a utility.DropOffRequest in pendingDropOffRequests (associated with the pickup floor).
     At this stage, the request is queued for lift processing.
 
 3. Lift Thread Loop

@@ -1,5 +1,15 @@
+package main;
+
+import exception.InvalidFloorException;
+import exception.InvalidInputException;
+import exception.LiftFullException;
+import exception.RequestFloorsOutOfRangeException;
+import lifts.LiftI;
+import lifts.brands.NormalLift;
+import lifts.brands.ToshibaLift;
+import utility.LiftRequest;
+
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class LiftManager {
     private int totalLifts;
@@ -134,7 +144,7 @@ public class LiftManager {
 
             LiftI currentLift;
             if (selectedOption == 'a') {
-                currentLift = new Lift(liftsList.size() + 1,
+                currentLift = new NormalLift(liftsList.size() + 1,
                         currentLiftMinFloor, currentLiftMaxFloor, currentLiftMaxCapacity);
             }else{
                 currentLift = new ToshibaLift(liftsList.size() + 1,

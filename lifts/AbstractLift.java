@@ -1,45 +1,41 @@
+package lifts;
+
+import exception.RequestFloorsOutOfRangeException;
+import utility.DropOffRequest;
+import utility.LiftRequest;
+
 import java.util.*;
 
 
-//Making the class abstract as we cannot create object to abstract class
-abstract class AbstractLift implements LiftI {
-    final int liftId;
-    final int minFloor;
-    final int maxFloor;
+// making the class abstract as we cannot create object to abstract class
+public abstract class AbstractLift implements LiftI {
+    public final int liftId;
+    public final int minFloor;
+    public final int maxFloor;
     private int currentFloor;
     protected LiftStates liftState;
 
     private int currentCapacity;
-    final private int totalCapacity;
+    private final int totalCapacity;
 
     protected long floorTravelTimeMs = 3000;
     protected long boardingTimeMs = 2000;
-    protected Queue<LiftRequest> requestQueue = new ArrayDeque<>();
 
-    /* THE BELOW HASHMAP'S CAN SIMPLY HOLD THE LiftRequest ITSELF AS VALUE, IN ORDER TO COMPLETELY
-     * REMOVE THE USAGE OF pendingDropOffRequests MAP
+    /*Thought:  THE BELOW HASHMAPS CAN SIMPLY HOLD THE utility.LiftRequest ITSELF AS VALUE, IN ORDER TO COMPLETELY
+     *          REMOVE THE USAGE OF pendingDropOffRequests MAP
      */
 
-    //The below hashmap's will hold key as their floor and passengersCount as their value
+    // below hashmap's will hold key as their floor and passengersCount as their value
     protected Map<Integer, Integer> pickUpRequests = new HashMap<>();
     protected Map<Integer, Integer> activeDropOffRequests = new HashMap<>();
 
-    //The below hashmap will hold pick up floor as key and a list of pendingDropOffRequests
+    // below hashmap will hold pick up floor as key and a list of pendingDropOffRequests
     protected Map<Integer, List<DropOffRequest>> pendingDropOffRequests = new HashMap<>();
 
-    private class DropOffRequest {
-        final int dropOffFloor;
-        final int passengerCount;
-
-        DropOffRequest(int dropOffFloor, int passengerCount) {
-            this.dropOffFloor = dropOffFloor;
-            this.passengerCount = passengerCount;
-        }
-    }
 
     volatile boolean isLiftRunning = true;
 
-    //get methods for private class variables
+    //getter methods
     @Override
     public int getLiftId() {
         return this.liftId;
@@ -64,28 +60,20 @@ abstract class AbstractLift implements LiftI {
     public LiftStates getCurrState() {
         return this.liftState;
     }
-    public void setCurrState(LiftStates state){
-        this.liftState=state;
-    }
     @Override
     public int getCurrentFloor() {
         return this.currentFloor;
     }
-    @Override
-    public Queue<LiftRequest> getRequests() {
-        return this.requestQueue;
-    }
-    @Override
-    public Map<Integer, Integer> getActiveDropOffRequests(){
+
+    public Map<Integer, Integer> getActiveDropOffRequests() {
         return this.activeDropOffRequests;
     }
-    @Override
-    public Map<Integer, Integer> getPickUpRequests(){
+    public Map<Integer, Integer> getPickUpRequests() {
         return this.pickUpRequests;
     }
 
-    //Assigning initial values when an instance is created for this class
-    AbstractLift(int liftId, int minFloor, int maxFloor, int totalCapacity) {
+    // assigning initial values when an instance is created for this class
+    protected AbstractLift(int liftId, int minFloor, int maxFloor, int totalCapacity) {
         this.liftId = liftId;
         this.minFloor = minFloor;
         this.maxFloor = maxFloor;
@@ -95,19 +83,47 @@ abstract class AbstractLift implements LiftI {
         this.totalCapacity = totalCapacity;
     }
 
-    //used by LiftManager to make the lift process a request
-    //Main thread comes till here to process a request
+    @Override
+    public void run() {
+        while (isLiftRunning) {
+            executeLiftCycle();
+        }
+    }
+
+    // holds the logic to process requests and handles lift movements
+    protected void executeLiftCycle() {
+        //Handle pickups if lift is idle
+        if (!pickUpRequests.isEmpty() && liftState == LiftStates.idle) {
+            int nearestFloor = findNearestFloor(pickUpRequests);
+            travelTo(nearestFloor, this::checkForPickUpRequests);
+        }
+
+        //Handle drop-offs if no pickups are pending
+        if (pickUpRequests.isEmpty() && !activeDropOffRequests.isEmpty() && liftState == LiftStates.idle) {
+            processPendingDropOffs();
+        }
+
+        //Reset to idle if nothing to do
+        if (pickUpRequests.isEmpty() && activeDropOffRequests.isEmpty()) {
+            liftState = LiftStates.idle;
+        }
+
+        //Delaying the thread for data in Collections(requests Queue or Map) to process
+        this.makeLiftThreadWait(200);
+    }
+
+    // used by main.LiftManager to make the lift process a request
+    // main thread comes till here to process a request
     @Override
     public synchronized void addRequest(LiftRequest newRequest) throws
             RequestFloorsOutOfRangeException {
         if (newRequest.toFloor < this.minFloor || newRequest.fromFloor < this.minFloor
                 || newRequest.toFloor > this.maxFloor || newRequest.fromFloor > this.maxFloor)
             throw new RequestFloorsOutOfRangeException("Requested lift out of buildings range");
-        requestQueue.add(newRequest);
         handleRequest(newRequest);
     }
 
-    //This method will spread a LiftRequest into pickUpRequest and dropOffRequest
+    // this method will spread a utility.LiftRequest into pickUpRequest and dropOffRequest
     protected void handleRequest(LiftRequest request) {
         // update pickUpRequests
         pickUpRequests.put(request.fromFloor,
@@ -123,14 +139,13 @@ abstract class AbstractLift implements LiftI {
         }
     }
 
-    //If any there are any pending activeDropOffRequests this method will process them.
+    // if there are any pending activeDropOffRequests this method will process them.
     protected void processPendingDropOffs() {
         while (!activeDropOffRequests.isEmpty()) {
             int nearestFloorToTheLift = findNearestFloor(activeDropOffRequests);
-            dropOffPassenger(nearestFloorToTheLift);
+            travelTo(nearestFloorToTheLift, this::checkForDropOffRequests);
         }
     }
-
 
     /* This method is used to get the nearest floor to the lift from requests map
      * (either pickUpRequests map or activeDropOffRequests map)
@@ -151,44 +166,25 @@ abstract class AbstractLift implements LiftI {
         return nearestFloorToTheLift;
     }
 
-    //MERGE THE BELOW TWO METHODS
-
-    //used to process drop off requests
-    protected void dropOffPassenger(int dropOffFloor) {
-        while (currentFloor != dropOffFloor) {
-            if (currentFloor < dropOffFloor) {
+    // used to process requests having a target floor(toFloor)
+    public void travelTo(int toFloor, Runnable checkExistingRequests) {
+        while (currentFloor != toFloor) {
+            if (currentFloor < toFloor) {
                 moveUp();
             } else {
                 moveDown();
             }
+            // check for new requests(if found process them)
             checkForPickUpRequests();
             checkForDropOffRequests();
         }
 
         // reached floor → drop passengers
-        checkForDropOffRequests();
+        checkExistingRequests.run();
         liftState = LiftStates.idle;
     }
 
-    //used to process pick up requests
-    protected void pickUpPassenger(int pickUpFloor) {
-        while (currentFloor != pickUpFloor) {
-            if (currentFloor < pickUpFloor) {
-                moveUp();
-            } else {
-                moveDown();
-            }
-            checkForPickUpRequests();
-            checkForDropOffRequests();
-        }
-
-        // reached floor → pick passengers
-        checkForPickUpRequests();
-        liftState = LiftStates.idle;
-    }
-
-
-    //process activeDropOffRequests if any exist in the lift's current floor
+    // process activeDropOffRequests if any exist in the lift's current floor
     private void checkForDropOffRequests() {
         if (activeDropOffRequests.containsKey(currentFloor)) {
             int noOfPassengersToDropOff = activeDropOffRequests.get(currentFloor);
@@ -200,8 +196,7 @@ abstract class AbstractLift implements LiftI {
         }
     }
 
-
-    //process pickUpRequests if any exist in the lift's current floor
+    // process pickUpRequests if any exist in the lift's current floor
     private void checkForPickUpRequests() {
         if (pickUpRequests.containsKey(currentFloor)) {
             int noOfPassengersToPickUp = pickUpRequests.get(currentFloor);
@@ -225,14 +220,12 @@ abstract class AbstractLift implements LiftI {
 
     }
 
-    //make the lift move up
     private void moveUp() {
         makeLiftThreadWait(floorTravelTimeMs);
         currentFloor++;
         liftState = LiftStates.goingUp;
     }
 
-    //make the lift move down
     private void moveDown() {
         makeLiftThreadWait(floorTravelTimeMs);
         currentFloor--;
@@ -250,27 +243,22 @@ abstract class AbstractLift implements LiftI {
         }
     }
 
-    //Checks if the lift can fit the passengers or not
     public boolean canLiftFit(int passengerCount) {
         return this.currentCapacity + passengerCount <= totalCapacity;
     }
 
-    //End the thread
     public void stopLift() {
         this.isLiftRunning = false;
     }
 
-    //Increment the passenger count
     public void addPassengers(int passengerCount) {
         this.currentCapacity += passengerCount;
     }
 
-    //to use the class Lift for SOP
     @Override
     public String toString() {
-        return "Lift " + this.liftId + " is at " + this.currentFloor + " floor with "
+        return "lifts.brands.NormalLift " + this.liftId + " is at " + this.currentFloor + " floor with "
                 + this.currentCapacity + " passengers and current liftState is " + this.liftState
                 + " (" + this.minFloor + ", " + this.maxFloor + ", " + this.totalCapacity + ")";
     }
-
 }
