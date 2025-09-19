@@ -1,6 +1,7 @@
 package main;
 
 import exception.InvalidInputException;
+import lifts.LiftManager;
 import utility.LiftRequest;
 
 import java.util.*;
@@ -10,7 +11,7 @@ public class LiftSimulator {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
 
-        //main.LiftManager is used to manage building, lifts and handle user lift requests
+        //lifts.LiftManager is used to manage building, lifts and handle user lift requests
         LiftManager liftManager = new LiftManager();
 
         //Taking input configuration from user

@@ -1,10 +1,9 @@
-package main;
+package lifts;
 
 import exception.InvalidFloorException;
 import exception.InvalidInputException;
 import exception.LiftFullException;
 import exception.RequestFloorsOutOfRangeException;
-import lifts.LiftI;
 import lifts.brands.NormalLift;
 import lifts.brands.ToshibaLift;
 import utility.LiftRequest;
@@ -41,16 +40,15 @@ public class LiftManager {
     }
 
     //Overloading constructors
-    LiftManager() {
-    }
+    public LiftManager() {}
 
-    LiftManager(int maxFloor, LiftI... lifts) {
+    public LiftManager(int maxFloor, LiftI... lifts) {
         this.maxFloor = maxFloor;
         this.liftsList = new LinkedList<>();
         this.liftsList.addAll(Arrays.asList(lifts));
     }
 
-    LiftManager(int maxFloor, List<LiftI> lifts) {
+    public LiftManager(int maxFloor, List<LiftI> lifts) {
         //A LinkedList should hold all the lifts
         this.liftsList = new LinkedList<>(lifts);
     }

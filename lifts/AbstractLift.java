@@ -112,7 +112,7 @@ public abstract class AbstractLift implements LiftI {
         this.makeLiftThreadWait(200);
     }
 
-    // used by main.LiftManager to make the lift process a request
+    // used by lifts.LiftManager to make the lift process a request
     // main thread comes till here to process a request
     @Override
     public synchronized void addRequest(LiftRequest newRequest) throws
