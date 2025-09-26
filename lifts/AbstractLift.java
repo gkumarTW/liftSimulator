@@ -151,19 +151,24 @@ public abstract class AbstractLift implements LiftI {
      * (either pickUpRequests map or activeDropOffRequests map)
      */
     protected int findNearestFloor(Map<Integer, Integer> requestsMap) {
-        int nearestFloorToTheLift = -1;
-        int minDistance = Integer.MAX_VALUE;
-
-        for (Integer currentRequestFloor : requestsMap.keySet()) {
-            if (currentRequestFloor >= minFloor && currentRequestFloor <= maxFloor) {
-                int distance = Math.abs(currentRequestFloor - currentFloor);
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    nearestFloorToTheLift = currentRequestFloor;
-                }
-            }
-        }
-        return nearestFloorToTheLift;
+//        int nearestFloorToTheLift = -1;
+//        int minDistance = Integer.MAX_VALUE;
+//
+//        for (Integer currentRequestFloor : requestsMap.keySet()) {
+//            //Ensuring the request is within the building's range
+//            if (currentRequestFloor >= this.minFloor && currentRequestFloor <= this.maxFloor) {
+//                int distance = Math.abs(currentRequestFloor - currentFloor);
+//                if (distance < minDistance) {
+//                    minDistance = distance;
+//                    nearestFloorToTheLift = currentRequestFloor;
+//                }
+//            }
+//        }
+//        return nearestFloorToTheLift;
+        return requestsMap.keySet().stream()
+                .filter(x->x>=this.minFloor && x<=this.maxFloor)
+                .min(Comparator.comparingInt(x->Math.abs(x-this.currentFloor)))
+                .orElse(-1);
     }
 
     // used to process requests having a target floor(toFloor)
