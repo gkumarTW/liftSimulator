@@ -166,9 +166,10 @@ public abstract class AbstractLift implements LiftI {
 //        }
 //        return nearestFloorToTheLift;
         return requestsMap.keySet().stream()
-                .filter(x->x>=this.minFloor && x<=this.maxFloor)
-                .min(Comparator.comparingInt(x->Math.abs(x-this.currentFloor)))
-                .orElse(-1);
+                .filter(x->x>=this.minFloor && x<=this.maxFloor)//considering only requests within buildings range
+                .min(Comparator.comparingInt(x->Math.abs(x-this.currentFloor)))//terminal operation of stream returns a value in the form of Optional object
+//              .get()//we can use .get() method to get the value from the optional object returned by .min operation but can throw NoSuchElementFound exception
+                .orElse(-1);//It's safer to use .orElse(valueToReturnIfNoSuchElementFound)
     }
 
     // used to process requests having a target floor(toFloor)
