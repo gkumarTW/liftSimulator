@@ -259,13 +259,42 @@ public class DBUtility {
                 DBConstants.SINGLE_QUOTE + "idle" + DBConstants.SINGLE_QUOTE + DBConstants.CLOSED_PARENTHESIS;
         try (Statement statement = connection.createStatement()) {
             int res = statement.executeUpdate(insertIntoLiftStatesSQL);
+            return res > 0;
         }
-        return true;
     }
 
     public static boolean insertLiftBrandsData(Connection connection) throws SQLException {
         String insertIntoLiftBrandsSQL = DBConstants.INSERT + DBConstants.SPACE + DBConstants.INTO + DBConstants.SPACE +
-                "lift_brands" + DBConstants.OPEN_PARENTHESIS + DBConstants.SPACE + "brands"
+                "lift_brands" + DBConstants.OPEN_PARENTHESIS + "brands" + DBConstants.COMMA +
+                "floor_travel_time_ms" + DBConstants.COMMA +
+                "boarding_time_ms" + DBConstants.CLOSED_PARENTHESIS + DBConstants.SPACE +
+                DBConstants.VALUES + DBConstants.SPACE + DBConstants.OPEN_PARENTHESIS + DBConstants.SINGLE_QUOTE +
+                "Toshiba" + DBConstants.SINGLE_QUOTE + DBConstants.COMMA + "3000" + DBConstants.COMMA + "1000" +
+                DBConstants.CLOSED_PARENTHESIS + DBConstants.COMMA + DBConstants.SPACE + DBConstants.OPEN_PARENTHESIS +
+                DBConstants.SINGLE_QUOTE + "Otis" + DBConstants.SINGLE_QUOTE + DBConstants.COMMA + "4000" +
+                DBConstants.COMMA + "1000" + DBConstants.CLOSED_PARENTHESIS + DBConstants.SEMICOLON;
+
+        try (Statement statement = connection.createStatement()) {
+            int res = statement.executeUpdate(insertIntoLiftBrandsSQL);
+            return res > 0;
+        }
+    }
+
+    public static boolean insertBuildingData(Connection connection, int minFloor, int maxFloor) throws SQLException {
+        String insertIntoLiftBrandsSQL = DBConstants.INSERT + DBConstants.SPACE + DBConstants.INTO + DBConstants.SPACE +
+                "lift_brands" + DBConstants.OPEN_PARENTHESIS + "brands" + DBConstants.COMMA +
+                "floor_travel_time_ms" + DBConstants.COMMA +
+                "boarding_time_ms" + DBConstants.CLOSED_PARENTHESIS + DBConstants.SPACE +
+                DBConstants.VALUES + DBConstants.SPACE + DBConstants.OPEN_PARENTHESIS + DBConstants.SINGLE_QUOTE +
+                "Toshiba" + DBConstants.SINGLE_QUOTE + DBConstants.COMMA + "3000" + DBConstants.COMMA + "1000" +
+                DBConstants.CLOSED_PARENTHESIS + DBConstants.COMMA + DBConstants.SPACE + DBConstants.OPEN_PARENTHESIS +
+                DBConstants.SINGLE_QUOTE + "Otis" + DBConstants.SINGLE_QUOTE + DBConstants.COMMA + "4000" +
+                DBConstants.COMMA + "1000" + DBConstants.CLOSED_PARENTHESIS + DBConstants.SEMICOLON;
+
+        try (Statement statement = connection.createStatement()) {
+            int res = statement.executeUpdate(insertIntoLiftBrandsSQL);
+            return res > 0;
+        }
     }
 
 
