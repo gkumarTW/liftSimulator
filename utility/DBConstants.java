@@ -1,4 +1,4 @@
-package main;
+package utility;
 
 public interface DBConstants {
     // -------------------------------
@@ -6,8 +6,10 @@ public interface DBConstants {
     // -------------------------------
     int PORT = 5432;
     String HOST = "localhost";
-    String DB_NAME = "java_jdbc";
+    String DB_NAME = "lift";
     String URL = "jdbc:postgresql://" + HOST + ":" + PORT + "/" + DB_NAME;
+    String USER= "postgres";
+    String PASSWORD="123456";
 
     // -------------------------------
     // Symbols
@@ -21,6 +23,8 @@ public interface DBConstants {
     String DOUBLE_QUOTE = "\"";
     String EQUALS = "=";
     String STAR = "*";
+    String LESS_THAN_OR_EQUAL_TO = "<=";
+    String ADD_OPERATOR = "+";
 
     // -------------------------------
     // SQL Keywords
@@ -45,11 +49,20 @@ public interface DBConstants {
     String UNIQUE = "UNIQUE";
     String DEFAULT = "DEFAULT";
     String SERIAL = "SERIAL";
+    String GENERATED = "GENERATED";
+    String BY = "BY";
+    String AS = "AS";
+    String IDENTITY = "IDENTITY";
+    String CHECK = "CHECK";
+    String ADD = "ADD";
+    String ON = "ON";
+    String NO = "NO";
+    String ACTION = "ACTION";
 
     // -------------------------------
     // Common Data Types (PostgreSQL)
     // -------------------------------
-    String INT = "INT";
+    String INT = "INTEGER";
     String BIGINT = "BIGINT";
     String VARCHAR = "VARCHAR";
     String TEXT = "TEXT";
@@ -67,6 +80,8 @@ public interface DBConstants {
     String AND = "AND";
     String OR = "OR";
     String IN = "IN";
+    String IF = "IF";
     String LIKE = "LIKE";
     String LIMIT = "LIMIT";
+    String EXISTS = "EXISTS";
 }

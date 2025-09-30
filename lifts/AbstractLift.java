@@ -26,13 +26,13 @@ public abstract class AbstractLift implements LiftI {
      */
 
     // below hashmap's will hold key as their floor and passengersCount as their value
-    protected Map<Integer, Integer> pickUpRequests = new HashMap<>();
-    protected Map<Integer, Integer> activeDropOffRequests = new HashMap<>();
 
     // below hashmap will hold pick up floor as key and a list of pendingDropOffRequests
     protected Map<Integer, List<DropOffRequest>> pendingDropOffRequests = new HashMap<>();
 
 
+    protected Map<Integer, Integer> pickUpRequests = new HashMap<>();
+    protected Map<Integer, Integer> activeDropOffRequests = new HashMap<>();
     volatile boolean isLiftRunning = true;
 
     //getter methods
