@@ -31,35 +31,106 @@ public class DBUtility {
 
     private static boolean createLiftsTable(Connection connection) throws SQLException {
         StringBuilder createLiftsTableSQL = new StringBuilder();
-        String createLiftsTableSQL = DBConstants.CREATE + DBConstants.SPACE + DBConstants.TABLE
-                + DBConstants.DOUBLE_QUOTE + "lifts" + DBConstants.DOUBLE_QUOTE + DBConstants.SPACE
-                + DBConstants.OPEN_PARENTHESIS
-                + DBConstants.DOUBLE_QUOTE + "id" + DBConstants.DOUBLE_QUOTE + DBConstants.SPACE + DBConstants.INT
-                + DBConstants.SPACE + DBConstants.NOT_NULL + DBConstants.SPACE + DBConstants.UNIQUE + DBConstants.SPACE
-                + DBConstants.GENERATED + DBConstants.SPACE + DBConstants.BY + DBConstants.SPACE + DBConstants.DEFAULT
-                + DBConstants.SPACE + DBConstants.AS + DBConstants.SPACE + DBConstants.IDENTITY + DBConstants.COMMA
-                + DBConstants.DOUBLE_QUOTE + "building_id" + DBConstants.DOUBLE_QUOTE + DBConstants.SPACE
-                + DBConstants.INT + DBConstants.COMMA
-                + DBConstants.DOUBLE_QUOTE + "min_floor" + DBConstants.DOUBLE_QUOTE + DBConstants.SPACE
-                + DBConstants.INT + DBConstants.COMMA
-                + DBConstants.DOUBLE_QUOTE + "max_floor" + DBConstants.DOUBLE_QUOTE + DBConstants.SPACE
-                + DBConstants.INT + DBConstants.COMMA
-                + DBConstants.DOUBLE_QUOTE + "current_floor" + DBConstants.DOUBLE_QUOTE + DBConstants.SPACE
-                + DBConstants.INT + DBConstants.SPACE + DBConstants.CHECK + DBConstants.OPEN_PARENTHESIS + "current_floor "
-                + DBConstants.LESS_THAN_OR_EQUAL_TO + " max_floor" + DBConstants.CLOSED_PARENTHESIS + DBConstants.COMMA
-                + DBConstants.DOUBLE_QUOTE + "current_capacity" + DBConstants.DOUBLE_QUOTE + DBConstants.SPACE
-                + DBConstants.INT + DBConstants.SPACE + DBConstants.CHECK + DBConstants.OPEN_PARENTHESIS + "current_capacity "
-                + DBConstants.LESS_THAN_OR_EQUAL_TO + " max_capacity"
-                + DBConstants.CLOSED_PARENTHESIS + DBConstants.COMMA
-                + DBConstants.DOUBLE_QUOTE + "max_capacity" + DBConstants.DOUBLE_QUOTE + DBConstants.SPACE
-                + DBConstants.INT + DBConstants.COMMA + DBConstants.DOUBLE_QUOTE + "state" + DBConstants.DOUBLE_QUOTE
-                + DBConstants.SPACE + DBConstants.INT + DBConstants.COMMA
-                + DBConstants.DOUBLE_QUOTE + "brand" + DBConstants.DOUBLE_QUOTE + DBConstants.SPACE
-                + DBConstants.INT + DBConstants.COMMA + DBConstants.PRIMARY_KEY
-                + DBConstants.OPEN_PARENTHESIS + DBConstants.DOUBLE_QUOTE + "id" + DBConstants.DOUBLE_QUOTE
-                + DBConstants.CLOSED_PARENTHESIS + DBConstants.CLOSED_PARENTHESIS + DBConstants.SEMICOLON;
+        createLiftsTableSQL.append(DBConstants.CREATE);
+        createLiftsTableSQL.append(DBConstants.SPACE);
+        createLiftsTableSQL.append(DBConstants.TABLE);
+        createLiftsTableSQL.append(DBConstants.DOUBLE_QUOTE);
+        createLiftsTableSQL.append("lifts");
+        createLiftsTableSQL.append(DBConstants.DOUBLE_QUOTE);
+        createLiftsTableSQL.append(DBConstants.SPACE);
+        createLiftsTableSQL.append(DBConstants.OPEN_PARENTHESIS);
+        createLiftsTableSQL.append(DBConstants.DOUBLE_QUOTE);
+        createLiftsTableSQL.append("id");
+        createLiftsTableSQL.append(DBConstants.DOUBLE_QUOTE);
+        createLiftsTableSQL.append(DBConstants.SPACE);
+        createLiftsTableSQL.append(DBConstants.INT);
+        createLiftsTableSQL.append(DBConstants.SPACE);
+        createLiftsTableSQL.append(DBConstants.NOT_NULL);
+        createLiftsTableSQL.append(DBConstants.SPACE);
+        createLiftsTableSQL.append(DBConstants.UNIQUE);
+        createLiftsTableSQL.append(DBConstants.SPACE);
+        createLiftsTableSQL.append(DBConstants.GENERATED);
+        createLiftsTableSQL.append(DBConstants.SPACE);
+        createLiftsTableSQL.append(DBConstants.BY);
+        createLiftsTableSQL.append(DBConstants.SPACE);
+        createLiftsTableSQL.append(DBConstants.DEFAULT);
+        createLiftsTableSQL.append(DBConstants.SPACE);
+        createLiftsTableSQL.append(DBConstants.AS);
+        createLiftsTableSQL.append(DBConstants.SPACE);
+        createLiftsTableSQL.append(DBConstants.IDENTITY);
+        createLiftsTableSQL.append(DBConstants.COMMA);
+        createLiftsTableSQL.append(DBConstants.DOUBLE_QUOTE);
+        createLiftsTableSQL.append("building_id");
+        createLiftsTableSQL.append(DBConstants.DOUBLE_QUOTE);
+        createLiftsTableSQL.append(DBConstants.SPACE);
+        createLiftsTableSQL.append(DBConstants.INT);
+        createLiftsTableSQL.append(DBConstants.COMMA);
+        createLiftsTableSQL.append(DBConstants.DOUBLE_QUOTE);
+        createLiftsTableSQL.append("min_floor");
+        createLiftsTableSQL.append(DBConstants.DOUBLE_QUOTE);
+        createLiftsTableSQL.append(DBConstants.SPACE);
+        createLiftsTableSQL.append(DBConstants.INT);
+        createLiftsTableSQL.append(DBConstants.COMMA);
+        createLiftsTableSQL.append(DBConstants.DOUBLE_QUOTE);
+        createLiftsTableSQL.append("max_floor");
+        createLiftsTableSQL.append(DBConstants.DOUBLE_QUOTE);
+        createLiftsTableSQL.append(DBConstants.SPACE);
+        createLiftsTableSQL.append(DBConstants.INT);
+        createLiftsTableSQL.append(DBConstants.COMMA);
+        createLiftsTableSQL.append(DBConstants.DOUBLE_QUOTE);
+        createLiftsTableSQL.append("current_floor");
+        createLiftsTableSQL.append(DBConstants.DOUBLE_QUOTE);
+        createLiftsTableSQL.append(DBConstants.SPACE);
+        createLiftsTableSQL.append(DBConstants.INT);
+        createLiftsTableSQL.append(DBConstants.SPACE);
+        createLiftsTableSQL.append(DBConstants.CHECK);
+        createLiftsTableSQL.append(DBConstants.OPEN_PARENTHESIS);
+        createLiftsTableSQL.append("current_floor ");
+        createLiftsTableSQL.append(DBConstants.LESS_THAN_OR_EQUAL_TO);
+        createLiftsTableSQL.append(" max_floor");
+        createLiftsTableSQL.append(DBConstants.CLOSED_PARENTHESIS);
+        createLiftsTableSQL.append(DBConstants.COMMA);
+        createLiftsTableSQL.append(DBConstants.DOUBLE_QUOTE);
+        createLiftsTableSQL.append("current_capacity");
+        createLiftsTableSQL.append(DBConstants.DOUBLE_QUOTE);
+        createLiftsTableSQL.append(DBConstants.SPACE);
+        createLiftsTableSQL.append(DBConstants.INT);
+        createLiftsTableSQL.append(DBConstants.SPACE);
+        createLiftsTableSQL.append(DBConstants.CHECK);
+        createLiftsTableSQL.append(DBConstants.OPEN_PARENTHESIS);
+        createLiftsTableSQL.append("current_capacity ");
+        createLiftsTableSQL.append(DBConstants.LESS_THAN_OR_EQUAL_TO);
+        createLiftsTableSQL.append(" max_capacity");
+        createLiftsTableSQL.append(DBConstants.CLOSED_PARENTHESIS);
+        createLiftsTableSQL.append(DBConstants.COMMA);
+        createLiftsTableSQL.append(DBConstants.DOUBLE_QUOTE);
+        createLiftsTableSQL.append("max_capacity");
+        createLiftsTableSQL.append(DBConstants.DOUBLE_QUOTE);
+        createLiftsTableSQL.append(DBConstants.SPACE);
+        createLiftsTableSQL.append(DBConstants.INT);
+        createLiftsTableSQL.append(DBConstants.COMMA);
+        createLiftsTableSQL.append(DBConstants.DOUBLE_QUOTE);
+        createLiftsTableSQL.append("state");
+        createLiftsTableSQL.append(DBConstants.DOUBLE_QUOTE);
+        createLiftsTableSQL.append(DBConstants.SPACE);
+        createLiftsTableSQL.append(DBConstants.INT);
+        createLiftsTableSQL.append(DBConstants.COMMA);
+        createLiftsTableSQL.append(DBConstants.DOUBLE_QUOTE);
+        createLiftsTableSQL.append("brand");
+        createLiftsTableSQL.append(DBConstants.DOUBLE_QUOTE);
+        createLiftsTableSQL.append(DBConstants.SPACE);
+        createLiftsTableSQL.append(DBConstants.INT);
+        createLiftsTableSQL.append(DBConstants.COMMA);
+        createLiftsTableSQL.append(DBConstants.PRIMARY_KEY);
+        createLiftsTableSQL.append(DBConstants.OPEN_PARENTHESIS);
+        createLiftsTableSQL.append(DBConstants.DOUBLE_QUOTE);
+        createLiftsTableSQL.append("id");
+        createLiftsTableSQL.append(DBConstants.DOUBLE_QUOTE);
+        createLiftsTableSQL.append(DBConstants.CLOSED_PARENTHESIS);
+        createLiftsTableSQL.append(DBConstants.CLOSED_PARENTHESIS);
+        createLiftsTableSQL.append(DBConstants.SEMICOLON;
         try (Statement statement = connection.createStatement();) {
-            statement.executeUpdate(createLiftsTableSQL);
+            statement.executeUpdate(createLiftsTableSQL.toString());
         }
         return true;
     }
