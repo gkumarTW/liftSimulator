@@ -64,19 +64,27 @@ public class DBUtility {
         return LiftStatesTableUtility.insertLiftStatesData(connection) && LiftBrandsTableUtility.insertLiftBrandsData(connection);
     }
 
-    public static void main(String[] args) {
-        try {
-            Connection connection = DriverManager
-                    .getConnection(DBConstants.URL, DBConstants.USER, DBConstants.PASSWORD);
-            System.out.println("byee");
-            /* Test updateLiftState(), updateLiftCurrentFloor(), updateLiftCurrentCapacity()
-            */
-//            updateLiftState(connection, 1, LiftStates.goingUp);
+    public static boolean prepareDB(Connection connection) throws SQLException {
+        clearDB(connection);
+        createTables(connection);
+        addRelations(connection);
+        insertMasterData(connection);
+        return true;
+    }
 
-//            insertBuildingData(connection, 0, 10);
-//            insertLiftsData(connection,1, 0, 10,0, 0, 4, getStateId(connection, LiftStates.idle), 2);
-//            insertLiftRequestsData(connection, 2, 3,6,3);
-
+//    public static void main(String[] args) {
+//        try {
+//            Connection connection = DriverManager
+//                    .getConnection(DBConstants.URL, DBConstants.USER, DBConstants.PASSWORD);
+//            System.out.println("byee");
+//            /* Test updateLiftState(), updateLiftCurrentFloor(), updateLiftCurrentCapacity()
+//            */
+////            updateLiftState(connection, 1, LiftStates.goingUp);
+//
+////            insertBuildingData(connection, 0, 10);
+////            insertLiftsData(connection,1, 0, 10,0, 0, 4, getStateId(connection, LiftStates.idle), 2);
+////            insertLiftRequestsData(connection, 2, 3,6,3);
+//
 //            clearDB(connection);
 //            System.out.println("bye");
 //            createTables(connection);
@@ -85,8 +93,8 @@ public class DBUtility {
 //            System.out.println("hii");
 //            insertMasterData(connection);
 //            System.out.println("hiii");
-        } catch (Exception e) {
-            System.out.println("Exception occurred: " + e.getMessage());
-        }
-    }
+//        } catch (Exception e) {
+//            System.out.println("Exception occurred: " + e.getMessage());
+//        }
+//    }
 }

@@ -51,13 +51,13 @@ public class LiftStatesTableUtility {
     public static int getStateId(Connection connection, LiftStates state) throws SQLException {
         int stateId=-1;
         switch (state){
-            case LiftStates.goingUp:
+            case goingUp:
                 stateId=getStateId(connection, "going_up");
                 break;
-            case LiftStates.goingDown:
+            case goingDown:
                 stateId=getStateId(connection, "going_down");
                 break;
-            case LiftStates.idle:
+            case idle:
                 stateId=getStateId(connection, "idle");
                 break;
         }

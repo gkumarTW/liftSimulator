@@ -1,5 +1,6 @@
 package utility.tableUtility;
 
+import lifts.LiftRequestStatus;
 import utility.DBConstants;
 import utility.DBUtility;
 
@@ -23,7 +24,15 @@ public class LiftRequestsTableUtility {
                 .append(DBConstants.COMMA).append(DBUtility.doubleQuoted("pick_up_floor")).append(DBConstants.SPACE).append(DBConstants.INT)
                 .append(DBConstants.COMMA).append(DBUtility.doubleQuoted("drop_off_floor")).append(DBConstants.SPACE).append(DBConstants.INT)
                 .append(DBConstants.COMMA).append(DBUtility.doubleQuoted("passenger_count")).append(DBConstants.SPACE).append(DBConstants.INT)
-                .append(DBConstants.COMMA).append(DBConstants.PRIMARY_KEY)
+                .append(DBConstants.COMMA).append(DBUtility.doubleQuoted("status")).append(DBConstants.SPACE)
+                .append(DBConstants.VARCHAR).append(DBConstants.OPEN_PARENTHESIS).append("20")
+                .append(DBConstants.CLOSED_PARENTHESIS).append(DBConstants.SPACE).append(DBConstants.CHECK).append(DBConstants.SPACE)
+                .append(DBConstants.OPEN_PARENTHESIS).append(DBUtility.doubleQuoted("status")).append(DBConstants.SPACE).append(DBConstants.IN)
+                .append(DBConstants.SPACE).append(DBConstants.OPEN_PARENTHESIS).append(DBUtility.singleQuoted("PENDING"))
+                .append(DBConstants.COMMA).append(DBConstants.SPACE).append(DBUtility.singleQuoted("IN_PROGRESS")).append(DBConstants.COMMA)
+                .append(DBConstants.SPACE).append(DBUtility.singleQuoted("COMPLETED")).append(DBConstants.CLOSED_PARENTHESIS)
+                .append(DBConstants.CLOSED_PARENTHESIS).append(DBConstants.COMMA)
+                .append(DBConstants.PRIMARY_KEY)
                 .append(DBConstants.OPEN_PARENTHESIS).append(DBUtility.doubleQuoted("id")).append(DBConstants.CLOSED_PARENTHESIS)
                 .append(DBConstants.CLOSED_PARENTHESIS).append(DBConstants.SEMICOLON);
 
@@ -65,11 +74,12 @@ public class LiftRequestsTableUtility {
                 .append("lift_id").append(DBConstants.COMMA)
                 .append("pick_up_floor").append(DBConstants.COMMA)
                 .append("drop_off_floor").append(DBConstants.COMMA)
-                .append("passenger_count")
+                .append("passenger_count").append(DBConstants.COMMA)
+                .append("status")
                 .append(DBConstants.CLOSED_PARENTHESIS).append(DBConstants.SPACE)
                 .append(DBConstants.VALUES).append(DBConstants.SPACE)
                 .append(DBConstants.OPEN_PARENTHESIS)
-                .append("?, ?, ?, ?")
+                .append("?, ?, ?, ?, ").append(DBUtility.singleQuoted("PENDING"))
                 .append(DBConstants.CLOSED_PARENTHESIS)
                 .append(DBConstants.SEMICOLON);
 
@@ -81,6 +91,23 @@ public class LiftRequestsTableUtility {
 
             int res = ps.executeUpdate();
             return res > 0;
+        }
+    }
+
+    public static boolean updateStatusById(Connection connection, int liftId, LiftRequestStatus status) {
+        StringBuilder updateLiftStatusByIdSQL = new StringBuilder()
+                .append(DBConstants.UPDATE).append(DBConstants.SPACE).append("lift_requests").append(DBConstants.SPACE)
+                .append(DBConstants.SET).append(DBConstants.SPACE).append("status").append(DBConstants.SPACE)
+                .append(DBConstants.EQUALS).append(DBConstants.SPACE).append("?").append(DBConstants.SPACE)
+                .append(DBConstants.WHERE).append(DBConstants.SPACE).append("lift_id").append(DBConstants.SPACE)
+                .append(DBConstants.EQUALS).append(DBConstants.SPACE).append("?").append(DBConstants.SEMICOLON);
+        try (PreparedStatement ps = connection.prepareStatement(updateLiftStatusByIdSQL.toString())) {
+            ps.setString(1, status.name()); // enum -> String
+            ps.setInt(2, liftId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
         }
     }
 

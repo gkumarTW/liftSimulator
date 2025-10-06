@@ -2,14 +2,27 @@ package utility;
 
 public interface DBConstants {
     // -------------------------------
-    // DB Connection
+    // TW DB
+    // -------------------------------
+//    int PORT = 5432;
+//    String HOST = "localhost";
+//    String DB_NAME = "lift";
+//    String URL = "jdbc:postgresql://" + HOST + ":" + PORT + "/" + DB_NAME;
+//    String USER= "postgres";
+//    String PASSWORD="123456";
+
+
+    // -------------------------------
+    // Personal DB
     // -------------------------------
     int PORT = 5432;
     String HOST = "localhost";
-    String DB_NAME = "lift";
+    String DB_NAME = "lift_personal";
     String URL = "jdbc:postgresql://" + HOST + ":" + PORT + "/" + DB_NAME;
-    String USER= "postgres";
-    String PASSWORD="123456";
+    String USER= "nitish";
+    String PASSWORD="secret123";
+
+
 
     // -------------------------------
     // Symbols

@@ -2,14 +2,27 @@ package main;
 
 import exception.InvalidInputException;
 import lifts.LiftManager;
+import utility.DBConstants;
+import utility.DBUtility;
 import utility.LiftRequest;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.util.*;
 
 public class LiftSimulator {
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
+
+        try(Connection dbConnection= DriverManager.
+                getConnection(DBConstants.URL, DBConstants.USER, DBConstants.PASSWORD)){
+
+        }catch(Exception e){
+            System.out.println("Exception occurred: "+e.getMessage());
+        }
+
+        DBUtility.prepareDB()
 
         //lifts.LiftManager is used to manage building, lifts and handle user lift requests
         LiftManager liftManager = new LiftManager();
