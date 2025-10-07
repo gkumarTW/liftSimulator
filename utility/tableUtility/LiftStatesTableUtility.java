@@ -19,10 +19,11 @@ public class LiftStatesTableUtility {
                 .append(DBConstants.UNIQUE).append(DBConstants.SPACE).append(DBConstants.GENERATED)
                 .append(DBConstants.SPACE).append(DBConstants.BY).append(DBConstants.SPACE).append(DBConstants.DEFAULT)
                 .append(DBConstants.SPACE).append(DBConstants.AS).append(DBConstants.SPACE).append(DBConstants.IDENTITY)
-                .append(DBConstants.COMMA).append(doubleQuoted("state")).append(DBConstants.SPACE).append(DBConstants.TEXT)
-                .append(DBConstants.COMMA).append(DBConstants.PRIMARY_KEY)
-                .append(DBConstants.OPEN_PARENTHESIS).append(doubleQuoted("id")).append(DBConstants.CLOSED_PARENTHESIS)
-                .append(DBConstants.CLOSED_PARENTHESIS).append(DBConstants.SEMICOLON);
+                .append(DBConstants.COMMA).append(doubleQuoted("state")).append(DBConstants.SPACE)
+                .append(DBConstants.TEXT).append(DBConstants.COMMA).append(DBConstants.PRIMARY_KEY)
+                .append(DBConstants.OPEN_PARENTHESIS).append(doubleQuoted("id"))
+                .append(DBConstants.CLOSED_PARENTHESIS).append(DBConstants.CLOSED_PARENTHESIS)
+                .append(DBConstants.SEMICOLON);
 
         try (Statement statement = connection.createStatement()) {
             statement.executeUpdate(createLiftStatesTableSQL.toString());
@@ -65,8 +66,8 @@ public class LiftStatesTableUtility {
     }
 
     public static boolean insertLiftStatesData(Connection connection) throws SQLException {
-        StringBuilder insertIntoLiftStatesSQL = new StringBuilder().append(DBConstants.INSERT).append(DBConstants.SPACE)
-                .append(DBConstants.INTO).append(DBConstants.SPACE).append("lift_states")
+        StringBuilder insertIntoLiftStatesSQL = new StringBuilder().append(DBConstants.INSERT)
+                .append(DBConstants.SPACE).append(DBConstants.INTO).append(DBConstants.SPACE).append("lift_states")
                 .append(DBConstants.OPEN_PARENTHESIS).append("state").append(DBConstants.CLOSED_PARENTHESIS)
                 .append(DBConstants.SPACE).append(DBConstants.VALUES).append(DBConstants.OPEN_PARENTHESIS)
                 .append(DBConstants.SINGLE_QUOTE).append("going_up").append(DBConstants.SINGLE_QUOTE)

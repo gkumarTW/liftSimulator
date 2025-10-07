@@ -3,12 +3,23 @@ package lifts.brands;
 import lifts.AbstractLift;
 
 public class NormalLift extends AbstractLift {
+    private int buildingId;
     private final String liftBrand="Normal";
     private int totalCapacityLimit=10;
+
+    public int getBuildingId(){
+        return this.buildingId;
+    }
 
     public String getLiftBrand(){
         return this.liftBrand;
     }
+
+    @Override
+    public int getBrandId() {
+        return 0;
+    }
+
     public int getTotalCapacityLimit() {
         return this.totalCapacityLimit;
     }

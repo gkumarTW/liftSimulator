@@ -6,13 +6,21 @@ import exception.LiftFullException;
 import exception.RequestFloorsOutOfRangeException;
 import lifts.brands.NormalLift;
 import lifts.brands.ToshibaLift;
-import utility.LiftRequest;
+import utility.DBConstants;
+import utility.tableUtility.BuildingsTableUtility;
+import utility.tableUtility.LiftBrandsTableUtility;
+import utility.tableUtility.LiftsTableUtility;
+import lifts.LiftRequest;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.*;
 
 public class LiftManager {
+    private int buildingId;
     private int totalLifts;
-    private int minFloor = 0;//In the building
+    private final int minFloor = 0;//In the building
     private int maxFloor;//In the building
     private int serviceFloors;
     private int maxLiftsCapacity;
@@ -53,7 +61,7 @@ public class LiftManager {
         this.liftsList = new LinkedList<>(lifts);
     }
 
-    public void inputBuildingConfiguration(Scanner sc) {
+    public void inputBuildingConfiguration(Scanner sc, Connection connection) throws SQLException {
         System.out.println("Please configure the building...");
 
         while (true) {
@@ -76,89 +84,132 @@ public class LiftManager {
             this.totalLifts = totalLiftsCount;
             break;
         }
+        BuildingsTableUtility.insertBuildingData(connection, this.minFloor, this.maxFloor, this.totalLifts);
+
+        // Maintaining a static value as current use case will only include a single building;
+        buildingId=1;
     }
 
-    public void inputLifts(Scanner sc) {
+    public void inputLifts(Scanner sc, Connection connection) throws SQLException {
         int maxFloorLiftCanService = 0;
         int maxCapacityOfLifts = 0;
+
+        // Fetch all available brand IDs
+        int[] brandIds = LiftBrandsTableUtility.getBrandIds(connection);
+
         while (liftsList.size() != totalLifts) {
-            char selectedOption;
-            sc.nextLine();
-            while(true){
+            int selectedBrandId = -1;
+
+            sc.nextLine(); // clear buffer
+
+            while (true) {
                 try {
                     System.out.println("Choose a lift brand to continue:");
-                    System.out.println("a. Normal");
-                    System.out.println("b. Toshiba");
+
+                    // Display brands dynamically from DB
+                    for (int i = 0; i < brandIds.length; i++) {
+                        String brandName = LiftBrandsTableUtility.getBrandById(connection, brandIds[i]);
+                        System.out.println((char) ('a' + i) + ". " + brandName);
+                    }
 
                     String input = sc.nextLine();
                     if (input.isEmpty()) {
                         throw new InvalidInputException("Input cannot be empty");
                     }
 
-                    char optionInput = input.charAt(0);
-                    if (!(optionInput == 'a' || optionInput == 'b')) {
-                        throw new InvalidInputException("Please choose either 'a' or 'b'");
+                    char optionInput = Character.toLowerCase(input.charAt(0));
+                    int index = optionInput - 'a';
+
+                    if (index < 0 || index >= brandIds.length) {
+                        throw new InvalidInputException(
+                                "Please choose a valid brand option (a-" + (char) ('a' + brandIds.length - 1) + ")"
+                        );
                     }
 
-                    selectedOption = optionInput;
+                    selectedBrandId = brandIds[index];
                     break;
 
                 } catch (InvalidInputException e) {
                     System.out.println(e.getMessage());
                 }
-
             }
+
+            // Building and brand-specific limits
+            int buildingMaxFloor = BuildingsTableUtility.getMaxFloorById(connection, 1);
+            int brandCapacityLimit = LiftBrandsTableUtility.getTotalCapacityLimitById(connection, selectedBrandId);
 
             int currentLiftId = liftsList.size() + 1;
             System.out.println("Configure lift " + currentLiftId);
-            int currentLiftMaxFloor, currentLiftMinFloor, currentLiftMaxCapacity;
+
+            int currentLiftMaxFloor;
+            int currentLiftMaxCapacity;
+            int currentLiftMinFloor = 0;
+
+            // Max floors input
             while (true) {
                 try {
                     System.out.println("Max floors for this lift:");
                     int input = sc.nextInt();
-                    if (input > maxFloor || input <= 0)
-                        throw new InvalidInputException();
+
+                    if (input <= 0) {
+                        throw new InvalidInputException("Floor count must be greater than 0");
+                    }
+                    if (input > buildingMaxFloor) {
+                        throw new InvalidInputException("Lift cannot serve more than " + buildingMaxFloor + " floors");
+                    }
+
                     currentLiftMaxFloor = input;
                     break;
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
+                    sc.nextLine(); // clear invalid input
                 }
             }
 
+            // Max capacity input
             while (true) {
                 try {
                     System.out.println("Max passengers for this lift:");
                     int input = sc.nextInt();
-                    if (input <= 0)
-                        throw new InvalidInputException();
+
+                    if (input <= 0) {
+                        throw new InvalidInputException("Passenger capacity must be greater than 0");
+                    }
+                    if (input > brandCapacityLimit) {
+                        throw new InvalidInputException("Lift capacity exceeds brand limit of " + brandCapacityLimit + " passengers");
+                    }
+
                     currentLiftMaxCapacity = input;
                     break;
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
+                    sc.nextLine(); // clear invalid input
                 }
             }
 
-            currentLiftMinFloor = 0;
-
-            LiftI currentLift;
-            if (selectedOption == 'a') {
-                currentLift = new NormalLift(liftsList.size() + 1,
-                        currentLiftMinFloor, currentLiftMaxFloor, currentLiftMaxCapacity);
-            }else{
-                currentLift = new ToshibaLift(liftsList.size() + 1,
-                        currentLiftMinFloor, currentLiftMaxFloor, currentLiftMaxCapacity);
-            }
-
+            // Create Lift object
+            Lift currentLift = new Lift(
+                    connection,
+                    currentLiftId,
+                    currentLiftMinFloor,
+                    currentLiftMaxFloor,
+                    currentLiftMaxCapacity,
+                    this.buildingId,
+                    selectedBrandId,
+                    currentLiftMaxCapacity
+            );
 
             liftsList.add(currentLift);
 
-            System.out.println("Created "+ currentLift.getLiftBrand()+" lift with id: " + currentLift.getLiftId());
+            String selectedBrandName = LiftBrandsTableUtility.getBrandById(connection, selectedBrandId);
+            System.out.println("Created " + selectedBrandName + " lift with id: " + currentLift.getLiftId());
 
-            if (currentLiftMaxFloor > maxFloorLiftCanService)
-                maxFloorLiftCanService = currentLiftMaxFloor;
+            // Track maxes
+            maxFloorLiftCanService = Math.max(maxFloorLiftCanService, currentLiftMaxFloor);
+            maxCapacityOfLifts = Math.max(maxCapacityOfLifts, currentLiftMaxCapacity);
 
-            if (currentLiftMaxCapacity > maxCapacityOfLifts)
-                maxCapacityOfLifts = currentLiftMaxCapacity;
+            // Persist in DB
+            LiftsTableUtility.addNewLift(connection, currentLift);
         }
 
         this.serviceFloors = maxFloorLiftCanService;
@@ -167,11 +218,11 @@ public class LiftManager {
 
 
     //used to assign the lift for the request made
-    public int handleLiftRequest(LiftRequest request) throws
-            InvalidFloorException, LiftFullException, RequestFloorsOutOfRangeException {
+    public int handleLiftRequest(TemporaryLiftRequest request) throws
+            InvalidFloorException, LiftFullException, RequestFloorsOutOfRangeException, SQLException {
         //Checking if the requested fromFloor and toFloor are in building's range
-        if (request.fromFloor < 0 || request.fromFloor > this.maxFloor
-                || request.toFloor < 0 || request.toFloor > this.maxFloor) {
+        if (request.getDropOffFloor() < 0 || request.getDropOffFloor() > this.maxFloor
+                || request.getPickUpFloor() < 0 || request.getPickUpFloor() > this.maxFloor) {
             throw new InvalidFloorException("Invalid floor in request");
         }
 
@@ -185,31 +236,35 @@ public class LiftManager {
             throw new LiftFullException();
         }
 
-        nearestLift.addPassengers(request.passengerCount);
-        nearestLift.addRequest(request);
-
+        nearestLift.addPassengers(request.getPassengerCount());
+//        nearestLift.addRequest(request);
+        try(Connection connection = DriverManager.getConnection(DBConstants.URL,
+                DBConstants.USER, DBConstants.PASSWORD)){
+            nearestLift.addRequest(new LiftRequest(connection, nearestLift.getLiftId(), request.getPickUpFloor(),
+                    request.getDropOffFloor(), request.getPassengerCount()));
+        }
         return nearestLift.getLiftId();
     }
 
     /* This method will return the nearest lift to the requested fromFloor based on distance(that is going
      * towards the request toFloor or the lift that is idle)
      */
-    private LiftI findNearestLift(LiftRequest request) {
+    private LiftI findNearestLift(TemporaryLiftRequest request) {
         LiftI nearestLift = null;
         int minDistance = Integer.MAX_VALUE;
 
         for (LiftI lift : liftsList) {
             //check if request from and to floor is within this lift's limit
-            if (request.fromFloor < lift.getMinFloor() || request.toFloor < lift.getMinFloor()
-                    || request.fromFloor > lift.getMaxFloor() || request.toFloor > lift.getMaxFloor())
+            if (request.getPickUpFloor() < lift.getMinFloor() || request.getDropOffFloor() < lift.getMinFloor()
+                    || request.getPickUpFloor() > lift.getMaxFloor() || request.getDropOffFloor() > lift.getMaxFloor())
                 continue;
 
 
             // check if lift can fit requested passengerCount
-            if (!lift.canLiftFit(request.passengerCount))
+            if (!lift.canLiftFit(request.getPassengerCount()))
                 continue;
 
-            int distance = Math.abs(lift.getCurrentFloor() - request.fromFloor);
+            int distance = Math.abs(lift.getCurrentFloor() - request.getPickUpFloor());
 
             switch (lift.getCurrState()) {
                 case idle:
@@ -221,8 +276,8 @@ public class LiftManager {
                     break;
 
                 case goingUp:
-                    if (request.fromFloor >= lift.getCurrentFloor()
-                            && request.toFloor > request.fromFloor) {
+                    if (request.getPickUpFloor() >= lift.getCurrentFloor()
+                            && request.getDropOffFloor() > request.getPickUpFloor()) {
                         if (distance < minDistance) {
                             minDistance = distance;
                             nearestLift = lift;
@@ -231,8 +286,8 @@ public class LiftManager {
                     break;
 
                 case goingDown:
-                    if (request.fromFloor <= lift.getCurrentFloor()
-                            && request.toFloor < request.fromFloor) {
+                    if (request.getPickUpFloor() <= lift.getCurrentFloor()
+                            && request.getDropOffFloor() < request.getPickUpFloor()) {
                         if (distance < minDistance) {
                             minDistance = distance;
                             nearestLift = lift;

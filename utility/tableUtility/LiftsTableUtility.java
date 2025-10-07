@@ -1,5 +1,7 @@
 package utility.tableUtility;
 
+import lifts.Lift;
+import lifts.LiftI;
 import lifts.LiftStates;
 import utility.DBConstants;
 import utility.DBUtility;
@@ -151,6 +153,12 @@ public class LiftsTableUtility {
         return insertLiftsData(connection, buildingId, 0, maxFloor,
                 0, 0, maxCapacity,
                 LiftStatesTableUtility.getStateId( connection, "idle"), brandId);
+    }
+
+    public static boolean addNewLift(Connection connection, LiftI lift) throws SQLException {
+        return insertLiftsData(connection, lift.getBuildingId(), lift.getMinFloor(), lift.getMaxFloor(),
+                lift.getCurrentFloor(), lift.getCurrentCapacity(), lift.getTotalCapacity(),
+                LiftStatesTableUtility.getStateId(connection, lift.getCurrState()), lift.getBrandId());
     }
 
     public static boolean updateLiftState(Connection connection, int liftId, LiftStates state) throws SQLException {

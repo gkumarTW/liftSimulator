@@ -2,7 +2,7 @@ package lifts;
 
 import exception.RequestFloorsOutOfRangeException;
 import utility.DropOffRequest;
-import utility.LiftRequest;
+import lifts.LiftRequest;
 
 import java.util.*;
 
@@ -117,8 +117,8 @@ public abstract class AbstractLift implements LiftI {
     @Override
     public synchronized void addRequest(LiftRequest newRequest) throws
             RequestFloorsOutOfRangeException {
-        if (newRequest.toFloor < this.minFloor || newRequest.fromFloor < this.minFloor
-                || newRequest.toFloor > this.maxFloor || newRequest.fromFloor > this.maxFloor)
+        if (newRequest.getDropOffFloor() < this.minFloor || newRequest.getPickUpFloor() < this.minFloor
+                || newRequest.getDropOffFloor() > this.maxFloor || newRequest.getPickUpFloor() > this.maxFloor)
             throw new RequestFloorsOutOfRangeException("Requested lift out of buildings range");
         handleRequest(newRequest);
     }
@@ -126,16 +126,16 @@ public abstract class AbstractLift implements LiftI {
     // this method will spread a utility.LiftRequest into pickUpRequest and dropOffRequest
     protected void handleRequest(LiftRequest request) {
         // update pickUpRequests
-        pickUpRequests.put(request.fromFloor,
-                pickUpRequests.getOrDefault(request.fromFloor, 0) + request.passengerCount);
+        pickUpRequests.put(request.getPickUpFloor(),
+                pickUpRequests.getOrDefault(request.getPickUpFloor(), 0) + request.getPassengerCount());
 
         // update pendingDropOffRequests
-        if (pendingDropOffRequests.containsKey(request.fromFloor)) {
-            List<DropOffRequest> dropOffRequestsList = pendingDropOffRequests.get(request.fromFloor);
-            dropOffRequestsList.add(new DropOffRequest(request.toFloor, request.passengerCount));
+        if (pendingDropOffRequests.containsKey(request.getPickUpFloor())) {
+            List<DropOffRequest> dropOffRequestsList = pendingDropOffRequests.get(request.getPickUpFloor());
+            dropOffRequestsList.add(new DropOffRequest(request.getDropOffFloor(), request.getPassengerCount()));
         } else {
-            pendingDropOffRequests.put(request.fromFloor, new ArrayList<>
-                    (List.of(new DropOffRequest(request.toFloor, request.passengerCount))));
+            pendingDropOffRequests.put(request.getPickUpFloor(), new ArrayList<>
+                    (List.of(new DropOffRequest(request.getDropOffFloor(), request.getPassengerCount()))));
         }
     }
 

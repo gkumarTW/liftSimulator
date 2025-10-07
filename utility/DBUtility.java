@@ -43,13 +43,9 @@ public class DBUtility {
         return true;
     }
 
-    public static boolean createTables(Connection connection) throws SQLException {
-        LiftsTableUtility.createLiftsTable(connection);
-        LiftRequestsTableUtility.createLiftRequestsTable(connection);
-        LiftBrandsTableUtility.createLiftBrandsTable(connection);
-        LiftStatesTableUtility.createLiftStatesTable(connection);
-        BuildingsTableUtility.createBuildingsTable(connection);
-        return true;
+    public static boolean insertMasterData(Connection connection) throws SQLException {
+        return LiftStatesTableUtility.insertLiftStatesData(connection)
+                && LiftBrandsTableUtility.insertLiftBrandsData(connection);
     }
 
     public static boolean addRelations(Connection connection) throws SQLException {
@@ -60,8 +56,13 @@ public class DBUtility {
         return true;
     }
 
-    public static boolean insertMasterData(Connection connection) throws SQLException {
-        return LiftStatesTableUtility.insertLiftStatesData(connection) && LiftBrandsTableUtility.insertLiftBrandsData(connection);
+    public static boolean createTables(Connection connection) throws SQLException {
+        LiftsTableUtility.createLiftsTable(connection);
+        LiftRequestsTableUtility.createLiftRequestsTable(connection);
+        LiftBrandsTableUtility.createLiftBrandsTable(connection);
+        LiftStatesTableUtility.createLiftStatesTable(connection);
+        BuildingsTableUtility.createBuildingsTable(connection);
+        return true;
     }
 
     public static boolean prepareDB(Connection connection) throws SQLException {
@@ -72,29 +73,27 @@ public class DBUtility {
         return true;
     }
 
-//    public static void main(String[] args) {
-//        try {
-//            Connection connection = DriverManager
-//                    .getConnection(DBConstants.URL, DBConstants.USER, DBConstants.PASSWORD);
-//            System.out.println("byee");
-//            /* Test updateLiftState(), updateLiftCurrentFloor(), updateLiftCurrentCapacity()
-//            */
-////            updateLiftState(connection, 1, LiftStates.goingUp);
-//
-////            insertBuildingData(connection, 0, 10);
-////            insertLiftsData(connection,1, 0, 10,0, 0, 4, getStateId(connection, LiftStates.idle), 2);
-////            insertLiftRequestsData(connection, 2, 3,6,3);
-//
-//            clearDB(connection);
-//            System.out.println("bye");
-//            createTables(connection);
-//            System.out.println("hi");
-//            addRelations(connection);
-//            System.out.println("hii");
-//            insertMasterData(connection);
-//            System.out.println("hiii");
-//        } catch (Exception e) {
-//            System.out.println("Exception occurred: " + e.getMessage());
-//        }
-//    }
+/*    public static void main(String[] args) {
+        try {
+            Connection connection = DriverManager
+                    .getConnection(DBConstants.URL, DBConstants.USER, DBConstants.PASSWORD);
+            System.out.println("byee");
+//            updateLiftState(connection, 1, LiftStates.goingUp);
+
+//            insertBuildingData(connection, 0, 10);
+//            insertLiftsData(connection,1, 0, 10,0, 0, 4, getStateId(connection, LiftStates.idle), 2);
+//            insertLiftRequestsData(connection, 2, 3,6,3);
+
+            clearDB(connection);
+            System.out.println("bye");
+            createTables(connection);
+            System.out.println("hi");
+            addRelations(connection);
+            System.out.println("hii");
+            insertMasterData(connection);
+            System.out.println("hiii");
+        } catch (Exception e) {
+            System.out.println("Exception occurred: " + e.getMessage());
+        }
+    }*/
 }

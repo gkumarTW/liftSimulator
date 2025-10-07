@@ -1,19 +1,20 @@
 package utility.tableUtility;
 
+import lifts.LiftRequest;
 import lifts.LiftRequestStatus;
 import utility.DBConstants;
 import utility.DBUtility;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Statement;
+import javax.swing.plaf.nimbus.State;
+import java.sql.*;
 
 public class LiftRequestsTableUtility {
+    private static String tableName = "lift_requests";
+
     public static boolean createLiftRequestsTable(Connection connection) throws SQLException {
         StringBuilder createLiftRequestsTableSQL = new StringBuilder()
                 .append(DBConstants.CREATE).append(DBConstants.SPACE).append(DBConstants.TABLE)
-                .append(DBUtility.doubleQuoted("lift_requests")).append(DBConstants.SPACE)
+                .append(DBUtility.doubleQuoted(tableName)).append(DBConstants.SPACE)
                 .append(DBConstants.OPEN_PARENTHESIS)
                 .append(DBUtility.doubleQuoted("id")).append(DBConstants.SPACE).append(DBConstants.INT)
                 .append(DBConstants.SPACE).append(DBConstants.NOT_NULL).append(DBConstants.SPACE)
@@ -44,7 +45,7 @@ public class LiftRequestsTableUtility {
 
     public static boolean addLiftRequestsForeignKey(Connection connection) throws SQLException {
         StringBuilder addForeignKeySQL = new StringBuilder().append(DBConstants.ALTER).append(DBConstants.SPACE)
-                .append(DBConstants.TABLE).append(DBConstants.DOUBLE_QUOTE).append("lift_requests")
+                .append(DBConstants.TABLE).append(DBConstants.DOUBLE_QUOTE).append(tableName)
                 .append(DBConstants.DOUBLE_QUOTE).append(DBConstants.SPACE).append(DBConstants.ADD)
                 .append(DBConstants.SPACE).append(DBConstants.FOREIGN_KEY).append(DBConstants.OPEN_PARENTHESIS)
                 .append(DBConstants.DOUBLE_QUOTE).append("lift_id").append(DBConstants.DOUBLE_QUOTE)
@@ -69,7 +70,7 @@ public class LiftRequestsTableUtility {
         StringBuilder insertIntoLiftRequestsSQL = new StringBuilder()
                 .append(DBConstants.INSERT).append(DBConstants.SPACE)
                 .append(DBConstants.INTO).append(DBConstants.SPACE)
-                .append("lift_requests")
+                .append(tableName)
                 .append(DBConstants.OPEN_PARENTHESIS)
                 .append("lift_id").append(DBConstants.COMMA)
                 .append("pick_up_floor").append(DBConstants.COMMA)
@@ -94,16 +95,32 @@ public class LiftRequestsTableUtility {
         }
     }
 
-    public static boolean updateStatusById(Connection connection, int liftId, LiftRequestStatus status) {
+    public static boolean addNewLiftRequest(Connection connection, LiftRequest newRequest) throws SQLException {
+        return insertLiftRequestsData(connection, newRequest.getLiftId(), newRequest.getPickUpFloor(),
+                newRequest.getDropOffFloor(), newRequest.getPassengerCount());
+    }
+
+    public static boolean updateStatusByRequestId(Connection connection, int requestId, LiftRequestStatus status) {
         StringBuilder updateLiftStatusByIdSQL = new StringBuilder()
-                .append(DBConstants.UPDATE).append(DBConstants.SPACE).append("lift_requests").append(DBConstants.SPACE)
+                .append(DBConstants.UPDATE).append(DBConstants.SPACE).append(tableName).append(DBConstants.SPACE)
                 .append(DBConstants.SET).append(DBConstants.SPACE).append("status").append(DBConstants.SPACE)
                 .append(DBConstants.EQUALS).append(DBConstants.SPACE).append("?").append(DBConstants.SPACE)
-                .append(DBConstants.WHERE).append(DBConstants.SPACE).append("lift_id").append(DBConstants.SPACE)
+                .append(DBConstants.WHERE).append(DBConstants.SPACE).append("id").append(DBConstants.SPACE)
                 .append(DBConstants.EQUALS).append(DBConstants.SPACE).append("?").append(DBConstants.SEMICOLON);
         try (PreparedStatement ps = connection.prepareStatement(updateLiftStatusByIdSQL.toString())) {
-            ps.setString(1, status.name()); // enum -> String
-            ps.setInt(2, liftId);
+            String statusDBEnumValue;
+            switch (status){
+                case inProgress:
+                    statusDBEnumValue = "IN_PROGRESS";
+                    break;
+                case completed:
+                    statusDBEnumValue = "COMPLETED";
+                    break;
+                default:
+                    statusDBEnumValue = "PENDING";
+            }
+            ps.setString(1, statusDBEnumValue);
+            ps.setInt(2, requestId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -111,5 +128,17 @@ public class LiftRequestsTableUtility {
         }
     }
 
-
+    public static int getNoOfExistingRequests(Connection connection) throws SQLException {
+        int totalRecordsInTable = 0;
+        StringBuilder getAllIdsSQL = new StringBuilder()
+                .append(DBConstants.SELECT).append(DBConstants.SPACE).append("id").append(DBConstants.SPACE)
+                .append(DBConstants.FROM).append(DBConstants.SPACE).append(tableName);
+        try (Statement statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery(getAllIdsSQL.toString())) {
+            while(rs.next()){
+                totalRecordsInTable++;
+            }
+        }
+        return totalRecordsInTable;
+    }
 }
