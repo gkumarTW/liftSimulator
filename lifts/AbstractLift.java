@@ -2,7 +2,7 @@ package lifts;
 
 import exception.RequestFloorsOutOfRangeException;
 import utility.DropOffRequest;
-import utility.LiftRequest;
+import lifts.LiftRequest;
 
 import java.util.*;
 
@@ -26,13 +26,13 @@ public abstract class AbstractLift implements LiftI {
      */
 
     // below hashmap's will hold key as their floor and passengersCount as their value
-    protected Map<Integer, Integer> pickUpRequests = new HashMap<>();
-    protected Map<Integer, Integer> activeDropOffRequests = new HashMap<>();
 
     // below hashmap will hold pick up floor as key and a list of pendingDropOffRequests
     protected Map<Integer, List<DropOffRequest>> pendingDropOffRequests = new HashMap<>();
 
 
+    protected Map<Integer, Integer> pickUpRequests = new HashMap<>();
+    protected Map<Integer, Integer> activeDropOffRequests = new HashMap<>();
     volatile boolean isLiftRunning = true;
 
     //getter methods
@@ -117,8 +117,8 @@ public abstract class AbstractLift implements LiftI {
     @Override
     public synchronized void addRequest(LiftRequest newRequest) throws
             RequestFloorsOutOfRangeException {
-        if (newRequest.toFloor < this.minFloor || newRequest.fromFloor < this.minFloor
-                || newRequest.toFloor > this.maxFloor || newRequest.fromFloor > this.maxFloor)
+        if (newRequest.getDropOffFloor() < this.minFloor || newRequest.getPickUpFloor() < this.minFloor
+                || newRequest.getDropOffFloor() > this.maxFloor || newRequest.getPickUpFloor() > this.maxFloor)
             throw new RequestFloorsOutOfRangeException("Requested lift out of buildings range");
         handleRequest(newRequest);
     }
@@ -126,16 +126,16 @@ public abstract class AbstractLift implements LiftI {
     // this method will spread a utility.LiftRequest into pickUpRequest and dropOffRequest
     protected void handleRequest(LiftRequest request) {
         // update pickUpRequests
-        pickUpRequests.put(request.fromFloor,
-                pickUpRequests.getOrDefault(request.fromFloor, 0) + request.passengerCount);
+        pickUpRequests.put(request.getPickUpFloor(),
+                pickUpRequests.getOrDefault(request.getPickUpFloor(), 0) + request.getPassengerCount());
 
         // update pendingDropOffRequests
-        if (pendingDropOffRequests.containsKey(request.fromFloor)) {
-            List<DropOffRequest> dropOffRequestsList = pendingDropOffRequests.get(request.fromFloor);
-            dropOffRequestsList.add(new DropOffRequest(request.toFloor, request.passengerCount));
+        if (pendingDropOffRequests.containsKey(request.getPickUpFloor())) {
+            List<DropOffRequest> dropOffRequestsList = pendingDropOffRequests.get(request.getPickUpFloor());
+            dropOffRequestsList.add(new DropOffRequest(request.getDropOffFloor(), request.getPassengerCount()));
         } else {
-            pendingDropOffRequests.put(request.fromFloor, new ArrayList<>
-                    (List.of(new DropOffRequest(request.toFloor, request.passengerCount))));
+            pendingDropOffRequests.put(request.getPickUpFloor(), new ArrayList<>
+                    (List.of(new DropOffRequest(request.getDropOffFloor(), request.getPassengerCount()))));
         }
     }
 
@@ -151,19 +151,25 @@ public abstract class AbstractLift implements LiftI {
      * (either pickUpRequests map or activeDropOffRequests map)
      */
     protected int findNearestFloor(Map<Integer, Integer> requestsMap) {
-        int nearestFloorToTheLift = -1;
-        int minDistance = Integer.MAX_VALUE;
-
-        for (Integer currentRequestFloor : requestsMap.keySet()) {
-            if (currentRequestFloor >= minFloor && currentRequestFloor <= maxFloor) {
-                int distance = Math.abs(currentRequestFloor - currentFloor);
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    nearestFloorToTheLift = currentRequestFloor;
-                }
-            }
-        }
-        return nearestFloorToTheLift;
+//        int nearestFloorToTheLift = -1;
+//        int minDistance = Integer.MAX_VALUE;
+//
+//        for (Integer currentRequestFloor : requestsMap.keySet()) {
+//            //Ensuring the request is within the building's range
+//            if (currentRequestFloor >= this.minFloor && currentRequestFloor <= this.maxFloor) {
+//                int distance = Math.abs(currentRequestFloor - currentFloor);
+//                if (distance < minDistance) {
+//                    minDistance = distance;
+//                    nearestFloorToTheLift = currentRequestFloor;
+//                }
+//            }
+//        }
+//        return nearestFloorToTheLift;
+        return requestsMap.keySet().stream()
+                .filter(x->x>=this.minFloor && x<=this.maxFloor)//considering only requests within buildings range
+                .min(Comparator.comparingInt(x->Math.abs(x-this.currentFloor)))//terminal operation of stream returns a value in the form of Optional object
+//              .get()//we can use .get() method to get the value from the optional object returned by .min operation but can throw NoSuchElementFound exception
+                .orElse(-1);//It's safer to use .orElse(valueToReturnIfNoSuchElementFound)
     }
 
     // used to process requests having a target floor(toFloor)

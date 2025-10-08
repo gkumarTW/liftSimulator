@@ -2,10 +2,14 @@ package lifts.brands;
 
 import lifts.AbstractLift;
 
-public class ToshibaLift extends AbstractLift {
+public abstract class ToshibaLift extends AbstractLift {
+    private int buildingId;
     private final String liftBrand="Toshiba";
     private int totalCapacityLimit=4;
 
+    public int getBuildingId(){
+        return this.buildingId;
+    }
     public String getLiftBrand(){
         return this.liftBrand;
     }
