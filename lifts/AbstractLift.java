@@ -64,6 +64,15 @@ public abstract class AbstractLift implements LiftI {
     public int getCurrentFloor() {
         return this.currentFloor;
     }
+    @Override
+    public long getFloorTravelTimeMs() {
+        return this.floorTravelTimeMs;
+    }
+    @Override
+    public long getBoardingTimeMs() {
+        return this.boardingTimeMs;
+    }
+
 
     public Map<Integer, Integer> getActiveDropOffRequests() {
         return this.activeDropOffRequests;

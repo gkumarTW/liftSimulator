@@ -1,9 +1,9 @@
 {
   "1": [
-    { "fromFloor": 1, "toFloor": 5, "noOfPassengers": 3 },
+    { "fromFloor": 1, "toFloor": 4, "noOfPassengers": 3 },
     { "fromFloor": 2, "toFloor": 7, "noOfPassengers": 2 },
     { "fromFloor": 6, "toFloor": 2, "noOfPassengers": 4 },
-    { "fromFloor": 3, "toFloor": 8, "noOfPassengers": 1 }
+    { "fromFloor": 3, "toFloor": 1, "noOfPassengers": 1 }
   ],
   "2": [
     { "fromFloor": 4, "toFloor": 1, "noOfPassengers": 2 },
@@ -12,6 +12,12 @@
     { "fromFloor": 7, "toFloor": 10, "noOfPassengers": 3 }
   ],
   "3": [
+    { "fromFloor": 5, "toFloor": 2, "noOfPassengers": 4 },
+    { "fromFloor": 8, "toFloor": 1, "noOfPassengers": 2 },
+    { "fromFloor": 10, "toFloor": 4, "noOfPassengers": 6 },
+    { "fromFloor": 3, "toFloor": 9, "noOfPassengers": 1 }
+  ],
+  "4": [
     { "fromFloor": 5, "toFloor": 2, "noOfPassengers": 4 },
     { "fromFloor": 8, "toFloor": 1, "noOfPassengers": 2 },
     { "fromFloor": 10, "toFloor": 4, "noOfPassengers": 6 },

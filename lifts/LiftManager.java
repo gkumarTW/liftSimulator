@@ -226,6 +226,14 @@ public class LiftManager {
             throw new InvalidFloorException("Invalid floor in request");
         }
 
+        if(request.getPickUpFloor() > this.getServiceFloors() || request.getDropOffFloor() > this.getServiceFloors()){
+            throw new InvalidFloorException("Lift cannot service the floor in request: " + request);
+        }
+
+        if(request.getPassengerCount() > this.getMaxCapacityOfLifts()){
+            throw new InvalidInputException("Single lift cannot accommodate the requested passengers.");
+        }
+
         /* Find suitable lift (dependencies are request's fromFloor, toFloor, passengerCount
          * and lift's currentCapacity, totalCapacity, state )
          */
