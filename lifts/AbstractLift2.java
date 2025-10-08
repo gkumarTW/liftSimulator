@@ -129,7 +129,6 @@ public abstract class AbstractLift2 implements LiftI {
         //Handle drop-offs if no pickups are pending
         if (pickUpRequests.isEmpty() && !activeDropOffRequests.isEmpty() && this.getCurrState() == LiftStates.idle) {
             processPendingDropOffs();
-            System.out.println("hii");
         }
 
         //Reset to idle if nothing to do
