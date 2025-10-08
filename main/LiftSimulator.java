@@ -124,13 +124,11 @@ public class LiftSimulator {
                 }
             }
         } catch (Exception e) {
-//            if (e.getMessage() != null)
-//                System.out.println(e.getMessage());
-//            else
-//                System.out.println("EXCEPTION OCCURRED!");
-            e.printStackTrace();
+            if (e.getMessage() != null)
+                System.out.println(e.getMessage());
+            else
+                System.out.println("EXCEPTION OCCURRED!");
         }
-
     }
 }
 

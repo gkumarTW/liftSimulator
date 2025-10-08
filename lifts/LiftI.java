@@ -21,4 +21,6 @@ public interface LiftI extends Runnable {
     LiftStates getCurrState();
     String getLiftBrand();
     int getBrandId();
+    long getFloorTravelTimeMs();
+    long getBoardingTimeMs();
 }
