@@ -1,6 +1,5 @@
 package utility;
 
-import lifts.LiftStates;
 import utility.tableUtility.*;
 
 import java.sql.*;
@@ -65,12 +64,11 @@ public class DBUtility {
         return true;
     }
 
-    public static boolean prepareDB(Connection connection) throws SQLException {
+    public static void prepareDB(Connection connection) throws SQLException {
         clearDB(connection);
         createTables(connection);
         addRelations(connection);
         insertMasterData(connection);
-        return true;
     }
 
 /*    public static void main(String[] args) {

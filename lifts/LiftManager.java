@@ -90,6 +90,12 @@ public class LiftManager {
         buildingId=1;
     }
 
+    /**
+     * something about this method
+     * @param sc
+     * @param connection
+     * @throws SQLException
+     */
     public void inputLifts(Scanner sc, Connection connection) throws SQLException {
         int maxFloorLiftCanService = 0;
         int maxCapacityOfLifts = 0;

@@ -1,18 +1,13 @@
 package main;
 
 import exception.InvalidInputException;
-import lifts.Lift;
 import lifts.LiftManager;
-import lifts.TemporaryLiftRequest;
-import main.resources.ResourceUtility;
 import utility.DBConstants;
 import utility.DBUtility;
-import lifts.LiftRequest;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.SQLOutput;
-import java.util.*;
+import java.util.Scanner;
 
 public class LiftSimulator {
 
