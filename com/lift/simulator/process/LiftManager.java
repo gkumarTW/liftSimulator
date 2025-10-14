@@ -4,13 +4,12 @@ import com.lift.simulator.exceptions.InvalidFloorException;
 import com.lift.simulator.exceptions.InvalidInputException;
 import com.lift.simulator.exceptions.LiftFullException;
 import com.lift.simulator.exceptions.RequestFloorsOutOfRangeException;
-import com.lift.simulator.constants.DBConstants;
+import com.lift.simulator.utility.DBUtility;
 import com.lift.simulator.utility.tableUtility.BuildingsTableUtility;
 import com.lift.simulator.utility.tableUtility.LiftBrandsTableUtility;
 import com.lift.simulator.utility.tableUtility.LiftsTableUtility;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -23,7 +22,7 @@ public class LiftManager {
     private int maxLiftsCapacity;
     private List<LiftI> liftsList = new LinkedList<>();
 
-    //get methods for private variables
+    //getter methods for private variables
     public int getTotalLifts() {
         return this.totalLifts;
     }
@@ -45,25 +44,41 @@ public class LiftManager {
     }
 
     //Overloading constructors
-    public LiftManager() {}
 
-    public LiftManager(int maxFloor, LiftI... lifts) {
-        this.maxFloor = maxFloor;
-        this.liftsList = new LinkedList<>();
-        this.liftsList.addAll(Arrays.asList(lifts));
+    /**
+     * This constructor will take inputs from the user:
+     *      First building is configured
+     *      Based on how many lifts the building hold the user has to configure those lifts
+     *      And At last the lifts start to run on separate threads.
+     * @param sc
+     * @param connection
+     * @throws SQLException
+     */
+    public LiftManager(Scanner sc, Connection connection) throws SQLException {
+        //Taking input configuration from user
+        this.inputBuildingConfiguration(sc, connection);
+
+        //Taking lift configuration from user
+        this.inputLiftsConfiguration(sc, connection);
+
+        //Running lifts on separate threads
+        this.startLifts();
     }
 
-    public LiftManager(int maxFloor, List<LiftI> lifts) {
-        //A LinkedList should hold all the lifts
-        this.liftsList = new LinkedList<>(lifts);
-    }
-
+    /**
+     * Prompts the user to configure building parameters (floors, lift count),
+     * validates input, and persists configuration in the Buildings table.
+     * @param sc
+     * @param connection
+     * @throws SQLException
+     */
     public void inputBuildingConfiguration(Scanner sc, Connection connection) throws SQLException {
         System.out.println("Please configure the building...");
 
         while (true) {
             System.out.println("Enter total floors:");
             int maxFloorInput = sc.nextInt();
+            sc.nextLine();
             if (maxFloorInput < 0) {
                 System.out.println("Invalid input");
                 continue;
@@ -74,6 +89,7 @@ public class LiftManager {
         while (true) {
             System.out.println("Number of lifts: ");
             int totalLiftsCount = sc.nextInt();
+            sc.nextLine();
             if (totalLiftsCount < 0) {
                 System.out.println("Invalid input");
                 continue;
@@ -88,12 +104,16 @@ public class LiftManager {
     }
 
     /**
-     * something about this method
+     * Configures all lifts by:
+     * - Fetching available lift brands from the DB
+     * - Validating brand, floor, and capacity constraints
+     * - Creating and persisting each lift
+     * Updates overall service floors and capacity limits.
      * @param sc
      * @param connection
      * @throws SQLException
      */
-    public void inputLifts(Scanner sc, Connection connection) throws SQLException {
+    public void inputLiftsConfiguration(Scanner sc, Connection connection) throws SQLException {
         int maxFloorLiftCanService = 0;
         int maxCapacityOfLifts = 0;
 
@@ -102,8 +122,6 @@ public class LiftManager {
 
         while (liftsList.size() != totalLifts) {
             int selectedBrandId = -1;
-
-            sc.nextLine(); // clear buffer
 
             while (true) {
                 try {
@@ -153,7 +171,7 @@ public class LiftManager {
                 try {
                     System.out.println("Max floors for this lift:");
                     int input = sc.nextInt();
-
+                    sc.nextLine();
                     if (input <= 0) {
                         throw new InvalidInputException("Floor count must be greater than 0");
                     }
@@ -165,7 +183,6 @@ public class LiftManager {
                     break;
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
-                    sc.nextLine(); // clear invalid input
                 }
             }
 
@@ -174,7 +191,7 @@ public class LiftManager {
                 try {
                     System.out.println("Max passengers for this lift:");
                     int input = sc.nextInt();
-
+                    sc.nextLine();
                     if (input <= 0) {
                         throw new InvalidInputException("Passenger capacity must be greater than 0");
                     }
@@ -186,7 +203,6 @@ public class LiftManager {
                     break;
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
-                    sc.nextLine(); // clear invalid input
                 }
             }
 
@@ -219,8 +235,18 @@ public class LiftManager {
         this.maxLiftsCapacity = maxCapacityOfLifts;
     }
 
-
-    //used to assign the lift for the request made
+    /**
+     * Handles an incoming lift request by:
+     * - Validating requested floors and passenger count
+     * - Selecting the nearest available lift
+     * - Assigning the request and persisting it to the DB
+     * @param request
+     * @return
+     * @throws InvalidFloorException
+     * @throws LiftFullException
+     * @throws RequestFloorsOutOfRangeException
+     * @throws SQLException
+     */
     public int handleLiftRequest(TemporaryLiftRequest request) throws
             InvalidFloorException, LiftFullException, RequestFloorsOutOfRangeException, SQLException {
         //Checking if the requested fromFloor and toFloor are in building's range
@@ -248,17 +274,23 @@ public class LiftManager {
         }
 
         nearestLift.addPassengers(request.getPassengerCount());
-//        nearestLift.addRequest(request);
-        try(Connection connection = DriverManager.getConnection(DBConstants.URL,
-                DBConstants.USER, DBConstants.PASSWORD)){
+
+        try(Connection connection = DBUtility.getConnection()){
             nearestLift.addRequest(new LiftRequest(connection, nearestLift.getLiftId(), request.getPickUpFloor(),
                     request.getDropOffFloor(), request.getPassengerCount()));
         }
         return nearestLift.getLiftId();
     }
 
-    /* This method will return the nearest lift to the requested fromFloor based on distance(that is going
-     * towards the request toFloor or the lift that is idle)
+    /**
+     * Finds the most suitable lift for a request based on:
+     * - Distance to pickup floor
+     * - Lift direction and availability
+     * - Capacity constraints
+     * Returns the nearest idle or direction-compatible lift, or null if none fit.
+     *
+     * @param request
+     * @return
      */
     private LiftI findNearestLift(TemporaryLiftRequest request) {
         LiftI nearestLift = null;
@@ -311,21 +343,21 @@ public class LiftManager {
         return nearestLift;
     }
 
-
-    //method to start all the lifts inside the map
+    // Starts each configured lift on a separate thread
     public void startLifts() {
         for (LiftI lift : liftsList) {
             new Thread(lift).start();
         }
     }
 
-    //method to stop all the lifts inside the map
+    // Stopping all lifts inside the List
     public void stopLifts() {
         for (LiftI lift : liftsList) {
             lift.stopLift();
         }
     }
 
+    // Displays current status of all lifts
     public void showLifts() {
         for (LiftI lift : liftsList) {
             System.out.println(lift);

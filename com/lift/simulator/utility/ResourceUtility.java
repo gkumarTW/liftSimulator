@@ -12,6 +12,9 @@ public class ResourceUtility {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
+    public static String liftRequestJsonFilePath = "C:\\Users\\ngaddamanugu\\IdeaProjects\\liftSimulator\\com" +
+            "\\lift\\simulator\\resources\\liftRequests.json";
+
     public static Map<Integer, List<LiftRequestDTO>> loadLiftRequests(String filePath) throws IOException {
         File file = new File(filePath);
         if (!file.exists()) return new HashMap<>();

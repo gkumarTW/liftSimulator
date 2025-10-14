@@ -2,6 +2,7 @@ package com.lift.simulator.process;
 
 import com.lift.simulator.exceptions.RequestFloorsOutOfRangeException;
 import com.lift.simulator.constants.DBConstants;
+import com.lift.simulator.utility.DBUtility;
 import com.lift.simulator.utility.tableUtility.LiftsTableUtility;
 
 import java.sql.Connection;
@@ -35,10 +36,12 @@ public abstract class AbstractLift2 implements LiftI {
     public int getLiftId() {
         return this.liftId;
     }
+
     @Override
     public int getMinFloor() {
         return this.minFloor;
     }
+
     @Override
     public int getMaxFloor() {
         return this.maxFloor;
@@ -48,8 +51,9 @@ public abstract class AbstractLift2 implements LiftI {
     public int getCurrentFloor() {
         return this.currentFloor;
     }
-    protected void setCurrentFloor(int currentFloor){
-        this.currentFloor=currentFloor;
+
+    protected void setCurrentFloor(int currentFloor) {
+        this.currentFloor = currentFloor;
         this.updateDBCurrentFloor();
     }
 
@@ -57,8 +61,9 @@ public abstract class AbstractLift2 implements LiftI {
     public int getCurrentCapacity() {
         return this.currentCapacity;
     }
-    protected void setCurrentCapacity(int currentCapacity){
-        this.currentCapacity=currentCapacity;
+
+    protected void setCurrentCapacity(int currentCapacity) {
+        this.currentCapacity = currentCapacity;
         this.updateDBCurrentCapacity();
     }
 
@@ -71,23 +76,26 @@ public abstract class AbstractLift2 implements LiftI {
     public LiftStates getCurrState() {
         return this.liftState;
     }
-    protected void setLiftState(LiftStates liftState){
-        this.liftState=liftState;
+
+    protected void setLiftState(LiftStates liftState) {
+        this.liftState = liftState;
         this.updateDBLiftState();
     }
 
-    public long getFloorTravelTimeMs(){
+    public long getFloorTravelTimeMs() {
         return this.floorTravelTimeMs;
     }
-    protected void setFloorTravelTimeMs(long floorTravelTimeMs){
-        this.floorTravelTimeMs=floorTravelTimeMs;
+
+    protected void setFloorTravelTimeMs(long floorTravelTimeMs) {
+        this.floorTravelTimeMs = floorTravelTimeMs;
     }
 
-    public long getBoardingTimeMs(){
+    public long getBoardingTimeMs() {
         return this.boardingTimeMs;
     }
-    protected void setBoardingTimeMs(long boardingTimeMs){
-        this.boardingTimeMs=boardingTimeMs;
+
+    protected void setBoardingTimeMs(long boardingTimeMs) {
+        this.boardingTimeMs = boardingTimeMs;
     }
 
     public Map<Integer, List<LiftRequest>> getPickUpRequests() {
@@ -187,8 +195,8 @@ public abstract class AbstractLift2 implements LiftI {
 //        }
 //        return nearestFloorToTheLift;
         return floors.stream()
-                .filter(x->x>=this.getMinFloor() && x<=this.getMaxFloor())//considering only requests within buildings range
-                .min(Comparator.comparingInt(x->Math.abs(x-this.getCurrentFloor())))//terminal operation of stream returns a value in the form of Optional object
+                .filter(x -> x >= this.getMinFloor() && x <= this.getMaxFloor())//considering only requests within buildings range
+                .min(Comparator.comparingInt(x -> Math.abs(x - this.getCurrentFloor())))//terminal operation of stream returns a value in the form of Optional object
 //              .get()//we can use .get() method to get the value from the optional object returned by .min operation but can throw NoSuchElementFound exception
                 .orElse(-1);//It's safer to use .orElse(valueToReturnIfNoSuchElementFound)
     }
@@ -237,9 +245,9 @@ public abstract class AbstractLift2 implements LiftI {
                 request.setStatus(LiftRequestStatus.inProgress);
 
                 // move to activeDropOffRequests map keyed by dropOffFloor
-                if(activeDropOffRequests.containsKey(request.getDropOffFloor())){
+                if (activeDropOffRequests.containsKey(request.getDropOffFloor())) {
                     activeDropOffRequests.get(request.getDropOffFloor()).add(request);
-                }else{
+                } else {
                     List<LiftRequest> tempList = new ArrayList<>();
                     tempList.add(request);
                     activeDropOffRequests.put(request.getDropOffFloor(), tempList);
@@ -254,13 +262,13 @@ public abstract class AbstractLift2 implements LiftI {
 
     private void moveUp() {
         makeLiftThreadWait(this.getFloorTravelTimeMs());
-        this.setCurrentFloor(this.getCurrentFloor()+1);
+        this.setCurrentFloor(this.getCurrentFloor() + 1);
         this.setLiftState(LiftStates.goingUp);
     }
 
     private void moveDown() {
         makeLiftThreadWait(this.getFloorTravelTimeMs());
-        this.setCurrentFloor(this.getCurrentFloor()-1);
+        this.setCurrentFloor(this.getCurrentFloor() - 1);
         this.setLiftState(LiftStates.goingDown);
     }
 
@@ -284,29 +292,35 @@ public abstract class AbstractLift2 implements LiftI {
     }
 
     public void addPassengers(int passengerCount) {
-        this.setCurrentCapacity(this.getCurrentCapacity()+passengerCount);
+        this.setCurrentCapacity(this.getCurrentCapacity() + passengerCount);
     }
 
     public void removePassengers(int passengerCount) {
-        this.setCurrentCapacity(this.getCurrentCapacity()-passengerCount);
+        this.setCurrentCapacity(this.getCurrentCapacity() - passengerCount);
     }
 
     private void updateDBCurrentFloor() {
-        try(Connection connection = DriverManager.getConnection(DBConstants.URL, DBConstants.USER, DBConstants.PASSWORD)) {
+        try (Connection connection = DBUtility.getConnection()) {
             LiftsTableUtility.updateLiftCurrentFloor(connection, this.getLiftId(), this.currentFloor);
-        } catch (Exception e) { System.out.println("Exception occurred: "+e.getMessage()); }
+        } catch (Exception e) {
+            System.out.println("Exception occurred: " + e.getMessage());
+        }
     }
 
     private void updateDBCurrentCapacity() {
-        try(Connection connection = DriverManager.getConnection(DBConstants.URL, DBConstants.USER, DBConstants.PASSWORD)) {
+        try (Connection connection = DBUtility.getConnection()) {
             LiftsTableUtility.updateLiftCurrentCapacity(connection, this.getLiftId(), this.getCurrentCapacity());
-        } catch (Exception e) { System.out.println("Exception occurred: "+e.getMessage()); }
+        } catch (Exception e) {
+            System.out.println("Exception occurred: " + e.getMessage());
+        }
     }
 
     private void updateDBLiftState() {
-        try(Connection connection = DriverManager.getConnection(DBConstants.URL, DBConstants.USER, DBConstants.PASSWORD)) {
+        try (Connection connection = DBUtility.getConnection()) {
             LiftsTableUtility.updateLiftState(connection, this.getLiftId(), this.liftState);
-        } catch (Exception e) { System.out.println("Exception occurred: "+e.getMessage()); }
+        } catch (Exception e) {
+            System.out.println("Exception occurred: " + e.getMessage());
+        }
     }
 
     @Override
