@@ -1,6 +1,7 @@
 package com.lift.simulator.process;
 
 import com.lift.simulator.constants.DBConstants;
+import com.lift.simulator.utility.DBUtility;
 import com.lift.simulator.utility.tableUtility.LiftRequestsTableUtility;
 
 import java.sql.Connection;
@@ -56,7 +57,7 @@ public class LiftRequest {
     }
     public void setStatus(LiftRequestStatus status){
         this.status=status;
-        try (Connection connection = DriverManager.getConnection(DBConstants.URL, DBConstants.USER, DBConstants.PASSWORD)){
+        try (Connection connection = DBUtility.getConnection()){
             LiftRequestsTableUtility.updateStatusByRequestId(connection, this.getId(), this.status);
         }catch (Exception e){
             System.out.println("Exception occurred: "+e.getMessage());

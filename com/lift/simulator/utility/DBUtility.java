@@ -7,6 +7,8 @@ import java.sql.*;
 
 public class DBUtility {
 
+    private static Connection connection;
+
     public static String singleQuoted(String str) {
         return new StringBuilder()
                 .append(DBConstants.SINGLE_QUOTE).append(str).append(DBConstants.SINGLE_QUOTE).toString();
@@ -72,27 +74,12 @@ public class DBUtility {
         insertMasterData(connection);
     }
 
-/*    public static void main(String[] args) {
-        try {
-            Connection connection = DriverManager
-                    .getConnection(DBConstants.URL, DBConstants.USER, DBConstants.PASSWORD);
-            System.out.println("byee");
-//            updateLiftState(connection, 1, LiftStates.goingUp);
 
-//            insertBuildingData(connection, 0, 10);
-//            insertLiftsData(connection,1, 0, 10,0, 0, 4, getStateId(connection, LiftStates.idle), 2);
-//            insertLiftRequestsData(connection, 2, 3,6,3);
-
-            clearDB(connection);
-            System.out.println("bye");
-            createTables(connection);
-            System.out.println("hi");
-            addRelations(connection);
-            System.out.println("hii");
-            insertMasterData(connection);
-            System.out.println("hiii");
-        } catch (Exception e) {
-            System.out.println("Exception occurred: " + e.getMessage());
+    public static synchronized Connection getConnection() throws SQLException {
+        if(connection==null || connection.isClosed()){
+            connection = DriverManager.getConnection(DBConstants.URL, DBConstants.USER, DBConstants.PASSWORD);
         }
-    }*/
+        return connection;
+    }
+
 }
