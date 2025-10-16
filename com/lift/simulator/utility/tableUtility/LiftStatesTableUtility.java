@@ -9,10 +9,15 @@ import static com.lift.simulator.utility.DBUtility.doubleQuoted;
 
 public class LiftStatesTableUtility {
 
+    // restricting object creation for this class
+    private LiftStatesTableUtility(){}
+
+    private static final String tableName = "lift_states";
+
     public static boolean createLiftStatesTable(Connection connection) throws SQLException {
         StringBuilder createLiftStatesTableSQL = new StringBuilder()
                 .append(DBConstants.CREATE).append(DBConstants.SPACE).append(DBConstants.TABLE)
-                .append(doubleQuoted("lift_states")).append(DBConstants.SPACE)
+                .append(doubleQuoted(tableName)).append(DBConstants.SPACE)
                 .append(DBConstants.OPEN_PARENTHESIS)
                 .append(doubleQuoted("id")).append(DBConstants.SPACE).append(DBConstants.INT)
                 .append(DBConstants.SPACE).append(DBConstants.NOT_NULL).append(DBConstants.SPACE)
@@ -35,7 +40,7 @@ public class LiftStatesTableUtility {
         int stateId=-1;
         StringBuilder getStateIdSQL=new StringBuilder()
                 .append(DBConstants.SELECT).append(DBConstants.SPACE).append("id").append(DBConstants.SPACE)
-                .append(DBConstants.FROM).append(DBConstants.SPACE).append("lift_states").append(DBConstants.SPACE)
+                .append(DBConstants.FROM).append(DBConstants.SPACE).append(tableName).append(DBConstants.SPACE)
                 .append(DBConstants.WHERE).append(DBConstants.SPACE).append("state").append(DBConstants.EQUALS)
                 .append("?").append(DBConstants.SEMICOLON);
         try(PreparedStatement ps=connection.prepareStatement(getStateIdSQL.toString())){
@@ -67,7 +72,7 @@ public class LiftStatesTableUtility {
 
     public static boolean insertLiftStatesData(Connection connection) throws SQLException {
         StringBuilder insertIntoLiftStatesSQL = new StringBuilder().append(DBConstants.INSERT)
-                .append(DBConstants.SPACE).append(DBConstants.INTO).append(DBConstants.SPACE).append("lift_states")
+                .append(DBConstants.SPACE).append(DBConstants.INTO).append(DBConstants.SPACE).append(tableName)
                 .append(DBConstants.OPEN_PARENTHESIS).append("state").append(DBConstants.CLOSED_PARENTHESIS)
                 .append(DBConstants.SPACE).append(DBConstants.VALUES).append(DBConstants.OPEN_PARENTHESIS)
                 .append(DBConstants.SINGLE_QUOTE).append("going_up").append(DBConstants.SINGLE_QUOTE)

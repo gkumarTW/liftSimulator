@@ -3,11 +3,7 @@ package com.lift.simulator.dto;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class LiftRequestDTO {
-    private int pickUpFloor;
-    private int dropOffFloor;
-    private int passengerCount;
-
+public record LiftRequestDTO(int pickUpFloor, int dropOffFloor, int passengerCount) {
     @JsonCreator
     public LiftRequestDTO(
             @JsonProperty("fromFloor") int pickUpFloor,
@@ -19,15 +15,10 @@ public class LiftRequestDTO {
         this.passengerCount = passengerCount;
     }
 
-    public int getPickUpFloor() { return pickUpFloor; }
-    public int getDropOffFloor() { return dropOffFloor; }
-    public int getPassengerCount() { return passengerCount; }
-
     @Override
     public String toString() {
         return "pickUpFloor:" + pickUpFloor +
                 " dropOffFloor:" + dropOffFloor +
                 " passengerCount:" + passengerCount;
     }
-
 }

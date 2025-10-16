@@ -7,7 +7,11 @@ import java.sql.*;
 import java.util.ArrayList;
 
 public class LiftBrandsTableUtility {
-    static final String tableName = "lift_brands";
+
+    // restricting object creation for this class
+    private LiftBrandsTableUtility(){}
+
+    private static final String tableName = "lift_brands";
 
     public static boolean createLiftBrandsTable(Connection connection) throws SQLException {
         StringBuilder createLiftBrandsTableSQL = new StringBuilder()

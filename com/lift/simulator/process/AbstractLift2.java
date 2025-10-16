@@ -1,12 +1,12 @@
 package com.lift.simulator.process;
 
+import com.lift.simulator.constants.StringConstants;
 import com.lift.simulator.exceptions.RequestFloorsOutOfRangeException;
-import com.lift.simulator.constants.DBConstants;
+
 import com.lift.simulator.utility.DBUtility;
 import com.lift.simulator.utility.tableUtility.LiftsTableUtility;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.util.*;
 
 
@@ -180,20 +180,6 @@ public abstract class AbstractLift2 implements LiftI {
      * (either pickUpRequests map or activeDropOffRequests map)
      */
     protected int findNearestFloor(Set<Integer> floors) {
-//        int nearestFloorToTheLift = -1;
-//        int minDistance = Integer.MAX_VALUE;
-//
-//        for (Integer currentRequestFloor : requestsMap.keySet()) {
-//            //Ensuring the request is within the building's range
-//            if (currentRequestFloor >= this.getMinFloor() && currentRequestFloor <= this.getMaxFloor()) {
-//                int distance = Math.abs(currentRequestFloor - this.getCurrentFloor());
-//                if (distance < minDistance) {
-//                    minDistance = distance;
-//                    nearestFloorToTheLift = currentRequestFloor;
-//                }
-//            }
-//        }
-//        return nearestFloorToTheLift;
         return floors.stream()
                 .filter(x -> x >= this.getMinFloor() && x <= this.getMaxFloor())//considering only requests within buildings range
                 .min(Comparator.comparingInt(x -> Math.abs(x - this.getCurrentFloor())))//terminal operation of stream returns a value in the form of Optional object
@@ -252,8 +238,6 @@ public abstract class AbstractLift2 implements LiftI {
                     tempList.add(request);
                     activeDropOffRequests.put(request.getDropOffFloor(), tempList);
                 }
-
-//                    activeDropOffRequests.computeIfAbsent(request.getDropOffFloor(), k -> new ArrayList<>()).add(request);
                 requests.remove(request);
             }
             if (requests.isEmpty()) pickUpRequests.remove(currentFloor);
@@ -278,7 +262,7 @@ public abstract class AbstractLift2 implements LiftI {
     public void makeLiftThreadWait(long time) {
         try {
             Thread.sleep(time);
-        } catch (Exception e) {
+        } catch (InterruptedException interruptedException) {
             System.out.println("Thread technical issue");
         }
     }
@@ -303,7 +287,7 @@ public abstract class AbstractLift2 implements LiftI {
         try (Connection connection = DBUtility.getConnection()) {
             LiftsTableUtility.updateLiftCurrentFloor(connection, this.getLiftId(), this.currentFloor);
         } catch (Exception e) {
-            System.out.println("Exception occurred: " + e.getMessage());
+            System.out.println(StringConstants.exceptionOccurredPrefixMessage + e.getMessage());
         }
     }
 
@@ -311,7 +295,7 @@ public abstract class AbstractLift2 implements LiftI {
         try (Connection connection = DBUtility.getConnection()) {
             LiftsTableUtility.updateLiftCurrentCapacity(connection, this.getLiftId(), this.getCurrentCapacity());
         } catch (Exception e) {
-            System.out.println("Exception occurred: " + e.getMessage());
+            System.out.println(StringConstants.exceptionOccurredPrefixMessage + e.getMessage());
         }
     }
 
@@ -319,7 +303,7 @@ public abstract class AbstractLift2 implements LiftI {
         try (Connection connection = DBUtility.getConnection()) {
             LiftsTableUtility.updateLiftState(connection, this.getLiftId(), this.liftState);
         } catch (Exception e) {
-            System.out.println("Exception occurred: " + e.getMessage());
+            System.out.println(StringConstants.exceptionOccurredPrefixMessage + e.getMessage());
         }
     }
 

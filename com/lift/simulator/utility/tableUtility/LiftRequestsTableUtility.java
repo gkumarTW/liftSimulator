@@ -8,7 +8,11 @@ import com.lift.simulator.utility.DBUtility;
 import java.sql.*;
 
 public class LiftRequestsTableUtility {
-    private static String tableName = "lift_requests";
+
+    // restricting object creation for this class
+    private LiftRequestsTableUtility(){}
+
+    private static final String tableName = "lift_requests";
 
     public static boolean createLiftRequestsTable(Connection connection) throws SQLException {
         StringBuilder createLiftRequestsTableSQL = new StringBuilder()
