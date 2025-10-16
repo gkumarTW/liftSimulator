@@ -7,6 +7,9 @@ import java.sql.*;
 
 public class DBUtility {
 
+    // restricting object creation to this class
+    private DBUtility(){}
+
     private static Connection connection;
 
     public static String singleQuoted(String str) {

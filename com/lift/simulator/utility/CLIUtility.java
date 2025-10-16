@@ -2,7 +2,6 @@ package com.lift.simulator.utility;
 
 import com.lift.simulator.exceptions.InvalidInputException;
 import com.lift.simulator.exceptions.LiftFullException;
-import com.lift.simulator.process.Lift;
 import com.lift.simulator.process.LiftManager;
 import com.lift.simulator.process.TemporaryLiftRequest;
 import com.lift.simulator.dto.LiftRequestDTO;
@@ -10,18 +9,19 @@ import com.lift.simulator.dto.LiftRequestDTO;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.Set;
+import java.util.*;
 
 public class CLIUtility {
+
+    // restricting object creation this class
+    private CLIUtility(){}
+
+    // public interface methods
     public static void batchProcessing(Scanner sc, LiftManager liftManager)
             throws IOException {
         System.out.println("Enter a batch number to process " +
                 "requests(below batch numbers are available):");
-        Map<Integer, List<LiftRequestDTO>> requests = ResourceUtility.loadLiftRequests
-                (ResourceUtility.liftRequestJsonFilePath);
+        Map<Integer, List<LiftRequestDTO>> requests = ResourceUtility.loadLiftRequests();
 
         while (true) {
             try {
@@ -44,25 +44,21 @@ public class CLIUtility {
 
     public static void singleRequestProcessing(Scanner sc, LiftManager liftManager)
             throws SQLException, LiftFullException {
-        while (true) {
+        boolean exitTriggered = false;
+        while (!exitTriggered) {
             //Input CURRENT FLOOR, DESTINATION FLOOR, AND PASSENGER COUNT as a string
             String combinedInputStr = inputLiftRequestStr(sc, liftManager);
 
             //Check if input has any keywords
             if (combinedInputStr.equalsIgnoreCase("exit")) {
                 liftManager.stopLifts();
-                break;
+                exitTriggered=true;
             } else if (combinedInputStr.equalsIgnoreCase("showLifts")) {
                 liftManager.showLifts();
                 continue;
             }
-
             processSingleLiftRequestStr(combinedInputStr, liftManager);
-            //USE THE BELOW BREAK TO EXECUTE ONLY ONE USER INPUT CASE
-//                            break;
-
         }
-
     }
 
     public static void coreCLI(){
@@ -81,29 +77,32 @@ public class CLIUtility {
             System.out.println("You can request a lift in this building or type EXIT to stop.");
             sc.nextLine();
 
-            outter:while (true) {
-                try {
-                    System.out.println("Choose type of requests:");
-                    System.out.println("a. batch requests");
-                    System.out.println("b. individual requests");
-                    System.out.println("c. exit");
-                    String option = sc.nextLine();
+            while (true) {
+                TreeMap<Character, String> typeOfRequestsOptions = new TreeMap<>();
+                typeOfRequestsOptions.put('a', "batch requests");
+                typeOfRequestsOptions.put('b', "individual requests");
+                typeOfRequestsOptions.put('c', "exit");
 
-                    switch (option.charAt(0)) {
-                        case 'a':
-                            CLIUtility.batchProcessing(sc, liftManager);
-                            break;
-                        case 'b':
-                            CLIUtility.singleRequestProcessing(sc, liftManager);
-                            break;
-                        case 'c':
-                            break outter;
-                        default:
-                            throw new InvalidInputException("Invalid option input for type of requests");
-                    }
+                char option = inputTypeOfRequest(sc, typeOfRequestsOptions);
 
-                } catch (Exception e) {
-                    System.out.println(e.getMessage());
+                boolean exitTriggered = false;
+
+                switch (option){
+                    case 'a':
+                        batchProcessing(sc, liftManager);
+                        break ;
+                    case 'b':
+                        singleRequestProcessing(sc, liftManager);
+                        break ;
+                    case 'c':
+                        exitTriggered = true;
+                        break;
+                    default:
+                        System.out.println("Invalid input");
+                }
+
+                if(exitTriggered){
+                    break;
                 }
             }
         } catch (Exception e) {
@@ -116,7 +115,37 @@ public class CLIUtility {
 
     // private helper methods
 
-    private static void displayAllOptions(Set options){
+    private static char inputTypeOfRequest(Scanner sc, TreeMap<Character, String> options)
+            throws InvalidInputException{
+        while(true){
+            try{
+                System.out.println("Choose type of requests:");
+
+                for (Map.Entry<Character, String> entry : options.entrySet()) {
+                    System.out.println(entry.getKey() + ". " + entry.getValue());
+                }
+
+
+                String input = sc.nextLine();
+
+                if(input.isEmpty()){
+                    throw new InvalidInputException("No input provided");
+                }
+                char option = input.toLowerCase().charAt(0);
+
+                if(options.containsKey(option)){
+                    return option;
+                }
+                throw new InvalidInputException("Invalid option input for type of requests");
+            } catch (Exception e) {
+                System.out.println("Invalid input: "+e.getMessage());
+            }
+        }
+
+    }
+
+
+    private static void displayAllOptions(Set<Integer> options){
         options.forEach(x -> System.out.println("batch no: " + x));
     }
 
@@ -126,9 +155,9 @@ public class CLIUtility {
             try {
                 int assignedLiftId = liftManager.handleLiftRequest(
                         new TemporaryLiftRequest(
-                                request.getPickUpFloor(),
-                                request.getDropOffFloor(),
-                                request.getPassengerCount()
+                                request.pickUpFloor(),
+                                request.dropOffFloor(),
+                                request.passengerCount()
                         )
                 );
                 System.out.println("Lift no " + assignedLiftId + " has been assigned to request " + request);
@@ -145,11 +174,11 @@ public class CLIUtility {
                 (liftManager.getMinFloor() == 0 ? "G" : liftManager.getMinFloor()) +
                 " to " + liftManager.getMaxFloor());
         System.out.println("Enter current floor, destination floor, passengers (e.g. 2 5 3):");
-        String input = sc.nextLine();
-        return input;
+        return sc.nextLine();
     }
 
-    private static void processSingleLiftRequestArr(String[] combinedInputArr, LiftManager liftManager) throws SQLException, LiftFullException {
+    private static void processSingleLiftRequestArr(String[] combinedInputArr, LiftManager liftManager)
+            throws SQLException, LiftFullException {
         //Check if the input has three values
         if (combinedInputArr.length < 3) {
             throw new InvalidInputException("Invalid input");

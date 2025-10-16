@@ -1,8 +1,8 @@
 package com.lift.simulator.process;
 
+import com.lift.simulator.utility.DBUtility;
 import com.lift.simulator.utility.tableUtility.LiftBrandsTableUtility;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 
 public class Lift extends AbstractLift2 {
@@ -27,15 +27,15 @@ public class Lift extends AbstractLift2 {
         return this.totalCapacityLimit;
     }
 
-    public Lift(Connection connection, int liftId, int minFloor, int maxFloor, int totalCapacity,
+    public Lift(int liftId, int minFloor, int maxFloor, int totalCapacity,
                 int buildingId, int brandId, int totalCapacityLimit) throws SQLException {
         super(liftId, minFloor, maxFloor, totalCapacity);
         this.buildingId=buildingId;
-        this.brand= LiftBrandsTableUtility.getBrandById(connection, brandId);
+        this.brand= LiftBrandsTableUtility.getBrandById(DBUtility.getConnection(), brandId);
         this.brandId=brandId;
         this.totalCapacityLimit=totalCapacityLimit;
-        this.floorTravelTimeMs = LiftBrandsTableUtility.getFloorTravelTimeMs(connection, brandId);
-        this.boardingTimeMs = LiftBrandsTableUtility.getBoardingTimeMs(connection, brandId);
+        this.floorTravelTimeMs = LiftBrandsTableUtility.getFloorTravelTimeMs(DBUtility.getConnection(), brandId);
+        this.boardingTimeMs = LiftBrandsTableUtility.getBoardingTimeMs(DBUtility.getConnection(), brandId);
     }
 
     @Override

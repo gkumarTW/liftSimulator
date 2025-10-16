@@ -6,6 +6,10 @@ import com.lift.simulator.utility.DBUtility;
 import java.sql.*;
 
 public class BuildingsTableUtility {
+
+    // restricting object creation for this class
+    private BuildingsTableUtility(){}
+
     private static final String tableName = "buildings";
 
     public static boolean createBuildingsTable(Connection connection) throws SQLException {

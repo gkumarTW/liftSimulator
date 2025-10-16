@@ -11,9 +11,15 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class LiftsTableUtility {
+
+    // restricting object creation for this class
+    private LiftsTableUtility(){}
+
+    private static final String tableName = "lifts";
+
     public static boolean createLiftsTable(Connection connection) throws SQLException {
         StringBuilder createLiftsTableSQL = new StringBuilder().append(DBConstants.CREATE).append(DBConstants.SPACE)
-                .append(DBConstants.TABLE).append(DBUtility.doubleQuoted("lifts")).append(DBConstants.SPACE)
+                .append(DBConstants.TABLE).append(DBUtility.doubleQuoted(tableName)).append(DBConstants.SPACE)
                 .append(DBConstants.OPEN_PARENTHESIS).append(DBUtility.doubleQuoted("id")).append(DBConstants.SPACE)
                 .append(DBConstants.INT).append(DBConstants.SPACE).append(DBConstants.NOT_NULL)
                 .append(DBConstants.SPACE).append(DBConstants.UNIQUE).append(DBConstants.SPACE)
@@ -51,7 +57,7 @@ public class LiftsTableUtility {
         StringBuilder insertIntoLiftsSQL = new StringBuilder()
                 .append(DBConstants.INSERT).append(DBConstants.SPACE)
                 .append(DBConstants.INTO).append(DBConstants.SPACE)
-                .append("lifts")
+                .append(tableName)
                 .append(DBConstants.OPEN_PARENTHESIS)
                 .append("building_id").append(DBConstants.COMMA)
                 .append("min_floor").append(DBConstants.COMMA)
@@ -85,7 +91,7 @@ public class LiftsTableUtility {
 
     public static boolean addLiftsBrandForeignKey(Connection connection) throws SQLException {
         StringBuilder addForeignKeySQL = new StringBuilder().append(DBConstants.ALTER).append(DBConstants.SPACE)
-                .append(DBConstants.TABLE).append(DBConstants.DOUBLE_QUOTE).append("lifts")
+                .append(DBConstants.TABLE).append(DBConstants.DOUBLE_QUOTE).append(tableName)
                 .append(DBConstants.DOUBLE_QUOTE).append(DBConstants.SPACE).append(DBConstants.ADD)
                 .append(DBConstants.SPACE).append(DBConstants.FOREIGN_KEY).append(DBConstants.OPEN_PARENTHESIS)
                 .append(DBConstants.DOUBLE_QUOTE).append("brand_id").append(DBConstants.DOUBLE_QUOTE)
@@ -106,7 +112,7 @@ public class LiftsTableUtility {
 
     public static boolean addLiftsStateForeignKey(Connection connection) throws SQLException {
         StringBuilder addForeignKeySQL = new StringBuilder().append(DBConstants.ALTER).append(DBConstants.SPACE)
-                .append(DBConstants.TABLE).append(DBConstants.DOUBLE_QUOTE).append("lifts")
+                .append(DBConstants.TABLE).append(DBConstants.DOUBLE_QUOTE).append(tableName)
                 .append(DBConstants.DOUBLE_QUOTE).append(DBConstants.SPACE).append(DBConstants.ADD)
                 .append(DBConstants.SPACE).append(DBConstants.FOREIGN_KEY).append(DBConstants.OPEN_PARENTHESIS)
                 .append(DBConstants.DOUBLE_QUOTE).append("state_id").append(DBConstants.DOUBLE_QUOTE)
@@ -127,7 +133,7 @@ public class LiftsTableUtility {
 
     public static boolean addLiftsBuildingForeignKey(Connection connection) throws SQLException {
         StringBuilder addForeignKeySQL = new StringBuilder().append(DBConstants.ALTER).append(DBConstants.SPACE)
-                .append(DBConstants.TABLE).append(DBConstants.DOUBLE_QUOTE).append("lifts")
+                .append(DBConstants.TABLE).append(DBConstants.DOUBLE_QUOTE).append(tableName)
                 .append(DBConstants.DOUBLE_QUOTE).append(DBConstants.SPACE).append(DBConstants.ADD)
                 .append(DBConstants.SPACE).append(DBConstants.FOREIGN_KEY).append(DBConstants.OPEN_PARENTHESIS)
                 .append(DBConstants.DOUBLE_QUOTE).append("building_id").append(DBConstants.DOUBLE_QUOTE)
@@ -163,7 +169,7 @@ public class LiftsTableUtility {
     public static boolean updateLiftState(Connection connection, int liftId, LiftStates state) throws SQLException {
         StringBuilder updateLiftStateSQL = new StringBuilder()
                 .append(DBConstants.UPDATE).append(DBConstants.SPACE)
-                .append("lifts").append(DBConstants.SPACE)
+                .append(tableName).append(DBConstants.SPACE)
                 .append(DBConstants.SET).append(DBConstants.SPACE)
                 .append("state_id").append(DBConstants.EQUALS).append("?").append(DBConstants.SPACE)
                 .append(DBConstants.WHERE).append(DBConstants.SPACE)
@@ -182,7 +188,7 @@ public class LiftsTableUtility {
                                                  int liftId, int currentFloor) throws SQLException {
         StringBuilder updateLiftCurrentFloorSQL = new StringBuilder()
                 .append(DBConstants.UPDATE).append(DBConstants.SPACE)
-                .append("lifts").append(DBConstants.SPACE)
+                .append(tableName).append(DBConstants.SPACE)
                 .append(DBConstants.SET).append(DBConstants.SPACE)
                 .append("current_floor").append(DBConstants.EQUALS).append("?").append(DBConstants.SPACE)
                 .append(DBConstants.WHERE).append(DBConstants.SPACE)
@@ -201,7 +207,7 @@ public class LiftsTableUtility {
                                                     int liftId, int currentCapacity) throws SQLException {
         StringBuilder updateLiftCurrentCapacitySQL = new StringBuilder()
                 .append(DBConstants.UPDATE).append(DBConstants.SPACE)
-                .append("lifts").append(DBConstants.SPACE)
+                .append(tableName).append(DBConstants.SPACE)
                 .append(DBConstants.SET).append(DBConstants.SPACE)
                 .append("current_capacity").append(DBConstants.EQUALS).append("?").append(DBConstants.SPACE)
                 .append(DBConstants.WHERE).append(DBConstants.SPACE)
