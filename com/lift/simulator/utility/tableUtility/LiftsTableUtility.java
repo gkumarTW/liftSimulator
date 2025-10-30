@@ -17,7 +17,8 @@ public class LiftsTableUtility {
 
     private static final String tableName = "lifts";
 
-    public static boolean createLiftsTable(Connection connection) throws SQLException {
+    public static boolean createLiftsTable() throws SQLException {
+        Connection connection = DBUtility.getConnection();
         StringBuilder createLiftsTableSQL = new StringBuilder().append(DBConstants.CREATE).append(DBConstants.SPACE)
                 .append(DBConstants.TABLE).append(DBUtility.doubleQuoted(tableName)).append(DBConstants.SPACE)
                 .append(DBConstants.OPEN_PARENTHESIS).append(DBUtility.doubleQuoted("id")).append(DBConstants.SPACE)
@@ -48,12 +49,14 @@ public class LiftsTableUtility {
         try (Statement statement = connection.createStatement();) {
             statement.executeUpdate(createLiftsTableSQL.toString());
         }
+        connection.close();
         return true;
     }
 
-    public static boolean insertLiftsData(Connection connection, int buildingId, int minFloor, int maxFloor,
+    public static boolean insertLiftsData(int buildingId, int minFloor, int maxFloor,
                                            int currentFloor, int currentCapacity, int maxCapacity,
                                            int stateId, int brandId) throws SQLException {
+        Connection connection = DBUtility.getConnection();
         StringBuilder insertIntoLiftsSQL = new StringBuilder()
                 .append(DBConstants.INSERT).append(DBConstants.SPACE)
                 .append(DBConstants.INTO).append(DBConstants.SPACE)
@@ -85,11 +88,14 @@ public class LiftsTableUtility {
             ps.setInt(8, brandId);
 
             int res = ps.executeUpdate();
+            connection.close();
             return res > 0;
         }
+
     }
 
-    public static boolean addLiftsBrandForeignKey(Connection connection) throws SQLException {
+    public static boolean addLiftsBrandForeignKey() throws SQLException {
+        Connection connection = DBUtility.getConnection();
         StringBuilder addForeignKeySQL = new StringBuilder().append(DBConstants.ALTER).append(DBConstants.SPACE)
                 .append(DBConstants.TABLE).append(DBConstants.DOUBLE_QUOTE).append(tableName)
                 .append(DBConstants.DOUBLE_QUOTE).append(DBConstants.SPACE).append(DBConstants.ADD)
@@ -107,10 +113,12 @@ public class LiftsTableUtility {
         try (Statement statement = connection.createStatement();) {
             statement.executeUpdate(addForeignKeySQL.toString());
         }
+        connection.close();
         return true;
     }
 
-    public static boolean addLiftsStateForeignKey(Connection connection) throws SQLException {
+    public static boolean addLiftsStateForeignKey() throws SQLException {
+        Connection connection = DBUtility.getConnection();
         StringBuilder addForeignKeySQL = new StringBuilder().append(DBConstants.ALTER).append(DBConstants.SPACE)
                 .append(DBConstants.TABLE).append(DBConstants.DOUBLE_QUOTE).append(tableName)
                 .append(DBConstants.DOUBLE_QUOTE).append(DBConstants.SPACE).append(DBConstants.ADD)
@@ -128,10 +136,12 @@ public class LiftsTableUtility {
         try (Statement statement = connection.createStatement();) {
             statement.executeUpdate(addForeignKeySQL.toString());
         }
+        connection.close();
         return true;
     }
 
-    public static boolean addLiftsBuildingForeignKey(Connection connection) throws SQLException {
+    public static boolean addLiftsBuildingForeignKey() throws SQLException {
+        Connection connection = DBUtility.getConnection();
         StringBuilder addForeignKeySQL = new StringBuilder().append(DBConstants.ALTER).append(DBConstants.SPACE)
                 .append(DBConstants.TABLE).append(DBConstants.DOUBLE_QUOTE).append(tableName)
                 .append(DBConstants.DOUBLE_QUOTE).append(DBConstants.SPACE).append(DBConstants.ADD)
@@ -149,24 +159,18 @@ public class LiftsTableUtility {
         try (Statement statement = connection.createStatement();) {
             statement.executeUpdate(addForeignKeySQL.toString());
         }
+        connection.close();
         return true;
     }
 
-
-    public static boolean addNewLift(Connection connection, int buildingId,
-                                     int maxFloor, int maxCapacity, int brandId) throws SQLException {
-        return insertLiftsData(connection, buildingId, 0, maxFloor,
-                0, 0, maxCapacity,
-                LiftStatesTableUtility.getStateId( connection, "idle"), brandId);
-    }
-
-    public static boolean addNewLift(Connection connection, LiftI lift) throws SQLException {
-        return insertLiftsData(connection, lift.getBuildingId(), lift.getMinFloor(), lift.getMaxFloor(),
+    public static boolean addNewLift(LiftI lift) throws SQLException {
+        return insertLiftsData( lift.getBuildingId(), lift.getMinFloor(), lift.getMaxFloor(),
                 lift.getCurrentFloor(), lift.getCurrentCapacity(), lift.getTotalCapacity(),
-                LiftStatesTableUtility.getStateId(connection, lift.getCurrState()), lift.getBrandId());
+                LiftStatesTableUtility.getStateId(lift.getCurrState()), lift.getBrandId());
     }
 
-    public static boolean updateLiftState(Connection connection, int liftId, LiftStates state) throws SQLException {
+    public static boolean updateLiftState(int liftId, LiftStates state) throws SQLException {
+        Connection connection = DBUtility.getConnection();
         StringBuilder updateLiftStateSQL = new StringBuilder()
                 .append(DBConstants.UPDATE).append(DBConstants.SPACE)
                 .append(tableName).append(DBConstants.SPACE)
@@ -176,16 +180,17 @@ public class LiftsTableUtility {
                 .append("id").append(DBConstants.EQUALS).append("?");
 
         try (PreparedStatement ps = connection.prepareStatement(updateLiftStateSQL.toString())) {
-            ps.setInt(1, LiftStatesTableUtility.getStateId(connection, state));
+            ps.setInt(1, LiftStatesTableUtility.getStateId(state));
             ps.setInt(2, liftId);
 
             int rowsAffected = ps.executeUpdate();
+            connection.close();
             return rowsAffected > 0;        // true if update succeeded
         }
     }
 
-    public static boolean updateLiftCurrentFloor(Connection connection,
-                                                 int liftId, int currentFloor) throws SQLException {
+    public static boolean updateLiftCurrentFloor(int liftId, int currentFloor) throws SQLException {
+        Connection connection = DBUtility.getConnection();
         StringBuilder updateLiftCurrentFloorSQL = new StringBuilder()
                 .append(DBConstants.UPDATE).append(DBConstants.SPACE)
                 .append(tableName).append(DBConstants.SPACE)
@@ -199,12 +204,13 @@ public class LiftsTableUtility {
             ps.setInt(2, liftId);
 
             int rowsAffected = ps.executeUpdate();
+            connection.close();
             return rowsAffected > 0;
         }
     }
 
-    public static boolean updateLiftCurrentCapacity(Connection connection,
-                                                    int liftId, int currentCapacity) throws SQLException {
+    public static boolean updateLiftCurrentCapacity(int liftId, int currentCapacity) throws SQLException {
+        Connection connection = DBUtility.getConnection();
         StringBuilder updateLiftCurrentCapacitySQL = new StringBuilder()
                 .append(DBConstants.UPDATE).append(DBConstants.SPACE)
                 .append(tableName).append(DBConstants.SPACE)
@@ -218,6 +224,7 @@ public class LiftsTableUtility {
             ps.setInt(2, liftId);
 
             int rowsAffected = ps.executeUpdate();
+            connection.close();
             return rowsAffected > 0;
         }
     }

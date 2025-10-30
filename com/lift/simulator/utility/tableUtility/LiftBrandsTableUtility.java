@@ -13,7 +13,8 @@ public class LiftBrandsTableUtility {
 
     private static final String tableName = "lift_brands";
 
-    public static boolean createLiftBrandsTable(Connection connection) throws SQLException {
+    public static boolean createLiftBrandsTable() throws SQLException {
+        Connection connection = DBUtility.getConnection();
         StringBuilder createLiftBrandsTableSQL = new StringBuilder()
                 .append(DBConstants.CREATE).append(DBConstants.SPACE).append(DBConstants.TABLE)
                 .append(DBUtility.doubleQuoted(tableName)).append(DBConstants.SPACE)
@@ -39,10 +40,12 @@ public class LiftBrandsTableUtility {
         try (Statement statement = connection.createStatement()) {
             statement.executeUpdate(createLiftBrandsTableSQL.toString());
         }
+        connection.close();
         return true;
     }
 
-    public static boolean insertLiftBrandsData(Connection connection) throws SQLException {
+    public static boolean insertLiftBrandsData() throws SQLException {
+        Connection connection = DBUtility.getConnection();
         StringBuilder insertIntoLiftBrandsSQL = new StringBuilder()
                 .append(DBConstants.INSERT).append(DBConstants.SPACE)
                 .append(DBConstants.INTO).append(DBConstants.SPACE).append(tableName)
@@ -64,41 +67,49 @@ public class LiftBrandsTableUtility {
 
         try (Statement statement = connection.createStatement()) {
             int res = statement.executeUpdate(insertIntoLiftBrandsSQL.toString());
+            connection.close();
             return res > 0;
         }
     }
 
-    public static int[] getBrandIds(Connection connection) throws SQLException {
+    public static int[] getBrandIds() throws SQLException {
+        Connection connection = DBUtility.getConnection();
         ArrayList<Integer> res=new ArrayList<>();
-        StringBuilder getAllBrandsSQL = new StringBuilder()
+        StringBuilder getAllBrandIdsSQL = new StringBuilder()
                 .append(DBConstants.SELECT).append(DBConstants.SPACE).append("id").append(DBConstants.SPACE)
                 .append(DBConstants.FROM).append(DBConstants.SPACE).append(tableName).append(DBConstants.SEMICOLON);
         try (Statement statement = connection.createStatement();
-             ResultSet rs =statement.executeQuery(getAllBrandsSQL.toString())){
+             ResultSet rs =statement.executeQuery(getAllBrandIdsSQL.toString())){
+
             while(rs.next()){
                 int brand = rs.getInt("id");
                 res.add(brand);
             }
         }
+        connection.close();
         return res.stream().mapToInt(Integer::intValue).toArray();
     }
 
-    public static String[] getAllBrands(Connection connection) throws SQLException {
+    public static String[] getAllBrands() throws SQLException {
+        Connection connection = DBUtility.getConnection();
         ArrayList<String> res=new ArrayList<>();
         StringBuilder getAllBrandsSQL = new StringBuilder()
                 .append(DBConstants.SELECT).append(DBConstants.SPACE).append("brand").append(DBConstants.SPACE)
                 .append(DBConstants.FROM).append(DBConstants.SPACE).append(tableName).append(DBConstants.SEMICOLON);
         try (Statement statement = connection.createStatement();
              ResultSet rs =statement.executeQuery(getAllBrandsSQL.toString())){
+
             while(rs.next()){
                 String brand = rs.getString("brand");
                 res.add(brand);
             }
         }
+        connection.close();
         return res.toArray(new String[0]);
     }
 
-    public static String getBrandById(Connection connection, int brandId) throws SQLException {
+    public static String getBrandById(int brandId) throws SQLException {
+        Connection connection = DBUtility.getConnection();
         String brand=null;
         StringBuilder getBrandByIdSQL = new StringBuilder()
                 .append(DBConstants.SELECT).append(DBConstants.SPACE).append("brand").append(DBConstants.SPACE)
@@ -114,10 +125,12 @@ public class LiftBrandsTableUtility {
                 }
             }
         }
+        connection.close();
         return brand;
     }
 
-    public static long getFloorTravelTimeMs(Connection connection, int brandId) throws SQLException {
+    public static long getFloorTravelTimeMs(int brandId) throws SQLException {
+        Connection connection = DBUtility.getConnection();
         long floorTravelTimeMs=-1;
         StringBuilder getBrandByIdSQL = new StringBuilder()
                 .append(DBConstants.SELECT).append(DBConstants.SPACE).append("floor_travel_time_ms")
@@ -126,6 +139,7 @@ public class LiftBrandsTableUtility {
                 .append(DBConstants.EQUALS).append("?").append(DBConstants.SEMICOLON);
 
         try (PreparedStatement ps = connection.prepareStatement(getBrandByIdSQL.toString())){
+
             ps.setInt(1,brandId);
             try (ResultSet rs = ps.executeQuery()){
                 if(rs.next()){
@@ -133,10 +147,12 @@ public class LiftBrandsTableUtility {
                 }
             }
         }
+        connection.close();
         return floorTravelTimeMs;
     }
 
-    public static long getBoardingTimeMs(Connection connection, int brandId) throws SQLException {
+    public static long getBoardingTimeMs(int brandId) throws SQLException {
+        Connection connection = DBUtility.getConnection();
         long boardingTimeMs=-1;
         StringBuilder getBrandByIdSQL = new StringBuilder()
                 .append(DBConstants.SELECT).append(DBConstants.SPACE).append("boarding_time_ms")
@@ -152,10 +168,12 @@ public class LiftBrandsTableUtility {
                 }
             }
         }
+        connection.close();
         return boardingTimeMs;
     }
 
-    public static int getTotalCapacityLimitById(Connection connection, int brandId) throws SQLException {
+    public static int getTotalCapacityLimitById(int brandId) throws SQLException {
+        Connection connection = DBUtility.getConnection();
         int totalCapacityLimit = -1;
         StringBuilder getTotalCapacityLimitByIdSQL = new StringBuilder()
                 .append(DBConstants.SELECT).append(DBConstants.SPACE).append("total_capacity_limit")
@@ -164,6 +182,7 @@ public class LiftBrandsTableUtility {
                 .append(DBConstants.EQUALS).append("?");
 
         try (PreparedStatement ps = connection.prepareStatement(getTotalCapacityLimitByIdSQL.toString())){
+
             ps.setInt(1, brandId);
             try (ResultSet rs = ps.executeQuery()){
                 if(rs.next()){
@@ -171,6 +190,7 @@ public class LiftBrandsTableUtility {
                 }
             }
         }
+        connection.close();
         return totalCapacityLimit;
     }
 

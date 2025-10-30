@@ -57,21 +57,21 @@ public class LiftRequest {
     }
     public void setStatus(LiftRequestStatus status){
         this.status=status;
-        try (Connection connection = DBUtility.getConnection()){
-            LiftRequestsTableUtility.updateStatusByRequestId(connection, this.getId(), this.status);
+        try {
+            LiftRequestsTableUtility.updateStatusByRequestId(this.getId(), this.status);
         }catch (Exception e){
             System.out.println("Exception occurred: "+e.getMessage());
         }
     }
 
-    public LiftRequest(Connection connection, int liftId, int pickUpFloor,
+    public LiftRequest(int liftId, int pickUpFloor,
                        int dropOffFloor, int passengerCount) throws SQLException {
-        setId(LiftRequestsTableUtility.getNoOfExistingRequests(connection)+1);
+        setId(LiftRequestsTableUtility.getNoOfExistingRequests()+1);
         setLiftId(liftId);
         setPickUpFloor(pickUpFloor);
         setDropOffFloor(dropOffFloor);
         setPassengerCount(passengerCount);
         setStatus(LiftRequestStatus.pending);
-        LiftRequestsTableUtility.addNewLiftRequest(connection, this);
+        LiftRequestsTableUtility.addNewLiftRequest(this);
     }
 }

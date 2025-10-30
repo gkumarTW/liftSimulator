@@ -106,7 +106,7 @@ public abstract class AbstractLift2 implements LiftI {
         return this.activeDropOffRequests;
     }
 
-    // assigning initial values when an instance is created for this class
+    // assigning initial values wh    en an instance is created for this class
     protected AbstractLift2(int liftId, int minFloor, int maxFloor, int totalCapacity) {
         this.liftId = liftId;
         this.minFloor = minFloor;
@@ -284,26 +284,26 @@ public abstract class AbstractLift2 implements LiftI {
     }
 
     private void updateDBCurrentFloor() {
-        try (Connection connection = DBUtility.getConnection()) {
-            LiftsTableUtility.updateLiftCurrentFloor(connection, this.getLiftId(), this.currentFloor);
+        try {
+            LiftsTableUtility.updateLiftCurrentFloor(this.getLiftId(), this.currentFloor);
         } catch (Exception e) {
-            System.out.println(StringConstants.exceptionOccurredPrefixMessage + e.getMessage());
+            System.out.println(StringConstants.exceptionOccurredPrefixMessage + " 1 " + e.getMessage());
         }
     }
 
     private void updateDBCurrentCapacity() {
-        try (Connection connection = DBUtility.getConnection()) {
-            LiftsTableUtility.updateLiftCurrentCapacity(connection, this.getLiftId(), this.getCurrentCapacity());
+        try {
+            LiftsTableUtility.updateLiftCurrentCapacity(this.getLiftId(), this.getCurrentCapacity());
         } catch (Exception e) {
-            System.out.println(StringConstants.exceptionOccurredPrefixMessage + e.getMessage());
+            System.out.println(StringConstants.exceptionOccurredPrefixMessage + " 2 " + e.getMessage());
         }
     }
 
     private void updateDBLiftState() {
-        try (Connection connection = DBUtility.getConnection()) {
-            LiftsTableUtility.updateLiftState(connection, this.getLiftId(), this.liftState);
+        try {
+            LiftsTableUtility.updateLiftState(this.getLiftId(), this.liftState);
         } catch (Exception e) {
-            System.out.println(StringConstants.exceptionOccurredPrefixMessage + e.getMessage());
+            System.out.println(StringConstants.exceptionOccurredPrefixMessage + " 3 " + e.getMessage());
         }
     }
 

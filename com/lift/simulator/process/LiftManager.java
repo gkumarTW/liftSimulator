@@ -51,18 +51,17 @@ public class LiftManager {
      *      Based on how many lifts the building hold the user has to configure those lifts
      *      And At last the lifts start to run on separate threads.
      * @param sc
-     * @param connection
      * @throws SQLException
      */
-    public LiftManager(Scanner sc, Connection connection) throws SQLException {
+    public LiftManager(Scanner sc) throws SQLException {
         //For now keeping the min floor of the building as 0
         this.minFloor = 0;
 
         //Taking input configuration from user
-        this.inputBuildingConfiguration(sc, connection);
+        this.inputBuildingConfiguration(sc);
 
         //Taking lift configuration from user
-        this.inputLiftsConfiguration(sc, connection);
+        this.inputLiftsConfiguration(sc);
 
         //Running lifts on separate threads
         this.startLifts();
@@ -72,10 +71,9 @@ public class LiftManager {
      * Prompts the user to configure building parameters (floors, lift count),
      * validates input, and persists configuration in the Buildings table.
      * @param sc
-     * @param connection
      * @throws SQLException
      */
-    public void inputBuildingConfiguration(Scanner sc, Connection connection) throws SQLException {
+    public void inputBuildingConfiguration(Scanner sc) throws SQLException {
         System.out.println("Please configure the building...");
 
         boolean validInputProvided = false;
@@ -102,7 +100,7 @@ public class LiftManager {
             this.totalLifts = totalLiftsCount;
             validInputProvided = true;
         }
-        BuildingsTableUtility.insertBuildingData(connection, this.minFloor, this.maxFloor, this.totalLifts);
+        BuildingsTableUtility.insertBuildingData(this.minFloor, this.maxFloor, this.totalLifts);
 
         // Maintaining a static value as current use case will only include a single building
         buildingId=1;
@@ -117,20 +115,19 @@ public class LiftManager {
      * - Creating and persisting each lift
      * Updates overall service floors and capacity limits.
      * @param sc
-     * @param connection
      * @throws SQLException
      */
-    public void inputLiftsConfiguration(Scanner sc, Connection connection) throws SQLException {
+    public void inputLiftsConfiguration(Scanner sc) throws SQLException {
         int maxFloorLiftCanService = 0;
         int maxCapacityOfLifts = 0;
 
-        int[] brandIds = LiftBrandsTableUtility.getBrandIds(connection);
+        int[] brandIds = LiftBrandsTableUtility.getBrandIds();
 
         while (liftsList.size() != totalLifts) {
-            int selectedBrandId = selectLiftBrand(sc, connection, brandIds);
+            int selectedBrandId = selectLiftBrand(sc, brandIds);
 
-            int buildingMaxFloor = BuildingsTableUtility.getMaxFloorById(connection, 1);
-            int brandCapacityLimit = LiftBrandsTableUtility.getTotalCapacityLimitById(connection, selectedBrandId);
+            int buildingMaxFloor = BuildingsTableUtility.getMaxFloorById(1);
+            int brandCapacityLimit = LiftBrandsTableUtility.getTotalCapacityLimitById(selectedBrandId);
 
             int currentLiftId = liftsList.size() + 1;
             System.out.println("Configure lift " + currentLiftId);
@@ -138,7 +135,7 @@ public class LiftManager {
             int currentLiftMaxFloor = inputLiftMaxFloor(sc, buildingMaxFloor);
             int currentLiftMaxCapacity = inputLiftMaxCapacity(sc, brandCapacityLimit);
 
-            createAndPersistLift(connection, currentLiftId, 0, currentLiftMaxFloor,
+            createAndPersistLift(currentLiftId, 0, currentLiftMaxFloor,
                     currentLiftMaxCapacity, this.buildingId, selectedBrandId);
 
             maxFloorLiftCanService = Math.max(maxFloorLiftCanService, currentLiftMaxFloor);
@@ -151,13 +148,13 @@ public class LiftManager {
 
     // private helper methods for the above method(inputLiftsConfiguration)
 
-    private int selectLiftBrand(Scanner sc, Connection connection, int[] brandIds) throws SQLException {
+    private int selectLiftBrand(Scanner sc, int[] brandIds) throws SQLException {
         while (true) {
             try {
                 System.out.println("Choose a lift brand to continue:");
 
                 for (int i = 0; i < brandIds.length; i++) {
-                    String brandName = LiftBrandsTableUtility.getBrandById(connection, brandIds[i]);
+                    String brandName = LiftBrandsTableUtility.getBrandById(brandIds[i]);
                     System.out.println((char) ('a' + i) + ". " + brandName);
                 }
 
@@ -209,12 +206,12 @@ public class LiftManager {
         }
     }
 
-    private void createAndPersistLift(Connection connection, int liftId, int minFloor, int maxFloor,
+    private void createAndPersistLift(int liftId, int minFloor, int maxFloor,
                                       int maxCapacity, int buildingId, int brandId) throws SQLException {
         Lift lift = new Lift(liftId, minFloor, maxFloor, maxCapacity, buildingId, brandId, maxCapacity);
         liftsList.add(lift);
-        LiftsTableUtility.addNewLift(connection, lift);
-        String brandName = LiftBrandsTableUtility.getBrandById(connection, brandId);
+        LiftsTableUtility.addNewLift(lift);
+        String brandName = LiftBrandsTableUtility.getBrandById(brandId);
         System.out.println("Created " + brandName + " lift with id: " + lift.getLiftId());
     }
 
@@ -259,10 +256,9 @@ public class LiftManager {
 
         nearestLift.addPassengers(request.getPassengerCount());
 
-        try(Connection connection = DBUtility.getConnection()){
-            nearestLift.addRequest(new LiftRequest(connection, nearestLift.getLiftId(), request.getPickUpFloor(),
+        nearestLift.addRequest(new LiftRequest(nearestLift.getLiftId(), request.getPickUpFloor(),
                     request.getDropOffFloor(), request.getPassengerCount()));
-        }
+
         return nearestLift.getLiftId();
     }
 
