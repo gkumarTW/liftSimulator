@@ -64,18 +64,18 @@ public class CLIUtility {
     public static void coreCLI(){
         Scanner sc = new Scanner(System.in);
 
-        try (Connection connection = DBUtility.getConnection()) {
+        try {
 
-            DBUtility.prepareDB(connection);
+            DBUtility.prepareDB();
 
             //com.lift.simulator.process.LiftManager is used to manage building, lifts and handle user lift requests
-            LiftManager liftManager = new LiftManager(sc, connection);
+            LiftManager liftManager = new LiftManager(sc);
 
             //UI for processing lift requests start here
             System.out.println();
             System.out.println("TW lift park simulation started.");
             System.out.println("You can request a lift in this building or type EXIT to stop.");
-            sc.nextLine();
+//            sc.nextLine();
 
             while (true) {
                 TreeMap<Character, String> typeOfRequestsOptions = new TreeMap<>();
@@ -106,6 +106,7 @@ public class CLIUtility {
                 }
             }
         } catch (Exception e) {
+            System.out.println("Hii");
             if (e.getMessage() != null)
                 System.out.println(e.getMessage());
             else

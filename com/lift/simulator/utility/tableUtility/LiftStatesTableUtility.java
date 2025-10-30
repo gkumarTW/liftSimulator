@@ -2,6 +2,7 @@ package com.lift.simulator.utility.tableUtility;
 
 import com.lift.simulator.process.LiftStates;
 import com.lift.simulator.constants.DBConstants;
+import com.lift.simulator.utility.DBUtility;
 
 import java.sql.*;
 
@@ -14,7 +15,8 @@ public class LiftStatesTableUtility {
 
     private static final String tableName = "lift_states";
 
-    public static boolean createLiftStatesTable(Connection connection) throws SQLException {
+    public static boolean createLiftStatesTable() throws SQLException {
+        Connection connection = DBUtility.getConnection();
         StringBuilder createLiftStatesTableSQL = new StringBuilder()
                 .append(DBConstants.CREATE).append(DBConstants.SPACE).append(DBConstants.TABLE)
                 .append(doubleQuoted(tableName)).append(DBConstants.SPACE)
@@ -33,10 +35,12 @@ public class LiftStatesTableUtility {
         try (Statement statement = connection.createStatement()) {
             statement.executeUpdate(createLiftStatesTableSQL.toString());
         }
+        connection.close();
         return true;
     }
 
-    public static int getStateId(Connection connection, String state) throws SQLException {
+    public static int getStateId(String state) throws SQLException {
+        Connection connection = DBUtility.getConnection();
         int stateId=-1;
         StringBuilder getStateIdSQL=new StringBuilder()
                 .append(DBConstants.SELECT).append(DBConstants.SPACE).append("id").append(DBConstants.SPACE)
@@ -51,26 +55,30 @@ public class LiftStatesTableUtility {
                 }
             }
         }
+        connection.close();
         return stateId;
     }
 
-    public static int getStateId(Connection connection, LiftStates state) throws SQLException {
+    public static int getStateId(LiftStates state) throws SQLException {
+        Connection connection = DBUtility.getConnection();
         int stateId=-1;
         switch (state){
             case goingUp:
-                stateId=getStateId(connection, "going_up");
+                stateId=getStateId("going_up");
                 break;
             case goingDown:
-                stateId=getStateId(connection, "going_down");
+                stateId=getStateId("going_down");
                 break;
             case idle:
-                stateId=getStateId(connection, "idle");
+                stateId=getStateId("idle");
                 break;
         }
+        connection.close();
         return stateId;
     }
 
-    public static boolean insertLiftStatesData(Connection connection) throws SQLException {
+    public static boolean insertLiftStatesData() throws SQLException {
+        Connection connection = DBUtility.getConnection();
         StringBuilder insertIntoLiftStatesSQL = new StringBuilder().append(DBConstants.INSERT)
                 .append(DBConstants.SPACE).append(DBConstants.INTO).append(DBConstants.SPACE).append(tableName)
                 .append(DBConstants.OPEN_PARENTHESIS).append("state").append(DBConstants.CLOSED_PARENTHESIS)
@@ -83,6 +91,7 @@ public class LiftStatesTableUtility {
                 .append(DBConstants.CLOSED_PARENTHESIS);
         try (Statement statement = connection.createStatement()) {
             int res = statement.executeUpdate(insertIntoLiftStatesSQL.toString());
+            connection.close();
             return res > 0;
         }
     }

@@ -31,11 +31,11 @@ public class Lift extends AbstractLift2 {
                 int buildingId, int brandId, int totalCapacityLimit) throws SQLException {
         super(liftId, minFloor, maxFloor, totalCapacity);
         this.buildingId=buildingId;
-        this.brand= LiftBrandsTableUtility.getBrandById(DBUtility.getConnection(), brandId);
+        this.brand= LiftBrandsTableUtility.getBrandById(brandId);
         this.brandId=brandId;
         this.totalCapacityLimit=totalCapacityLimit;
-        this.floorTravelTimeMs = LiftBrandsTableUtility.getFloorTravelTimeMs(DBUtility.getConnection(), brandId);
-        this.boardingTimeMs = LiftBrandsTableUtility.getBoardingTimeMs(DBUtility.getConnection(), brandId);
+        this.floorTravelTimeMs = LiftBrandsTableUtility.getFloorTravelTimeMs(brandId);
+        this.boardingTimeMs = LiftBrandsTableUtility.getBoardingTimeMs(brandId);
     }
 
     @Override

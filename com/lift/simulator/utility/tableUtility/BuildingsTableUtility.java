@@ -12,7 +12,8 @@ public class BuildingsTableUtility {
 
     private static final String tableName = "buildings";
 
-    public static boolean createBuildingsTable(Connection connection) throws SQLException {
+    public static boolean createBuildingsTable() throws SQLException {
+        Connection connection = DBUtility.getConnection();
         StringBuilder createBuildingsTableSQL = new StringBuilder()
                 .append(DBConstants.CREATE).append(DBConstants.SPACE).append(DBConstants.TABLE)
                 .append(DBUtility.doubleQuoted(tableName)).append(DBConstants.SPACE)
@@ -33,11 +34,12 @@ public class BuildingsTableUtility {
         try (Statement statement = connection.createStatement()) {
             statement.executeUpdate(createBuildingsTableSQL.toString());
         }
+        connection.close();
         return true;
     }
 
-    public static boolean insertBuildingData(Connection connection,
-                                              int minFloor, int maxFloor, int noOfLifts) throws SQLException {
+    public static boolean insertBuildingData(int minFloor, int maxFloor, int noOfLifts) throws SQLException {
+        Connection connection = DBUtility.getConnection();
         StringBuilder insertIntoBuildingsSQL = new StringBuilder()
                 .append(DBConstants.INSERT).append(DBConstants.SPACE).append(DBConstants.INTO).append(DBConstants.SPACE)
                 .append(tableName).append(DBConstants.OPEN_PARENTHESIS).append("min_floor").append(DBConstants.COMMA)
@@ -51,11 +53,13 @@ public class BuildingsTableUtility {
             ps.setInt(2, maxFloor);
             ps.setInt(3, noOfLifts);
             int res = ps.executeUpdate();
+            connection.close();
             return res > 0;
         }
     }
 
-    public static int getMaxFloorById(Connection connection, int buildingId) throws SQLException {
+    public static int getMaxFloorById(int buildingId) throws SQLException {
+        Connection connection = DBUtility.getConnection();
         int maxFloor = -1;
 
         StringBuilder getMaxFloorByIdSQL = new StringBuilder()
@@ -72,6 +76,7 @@ public class BuildingsTableUtility {
                 }
             }
         }
+        connection.close();
         return maxFloor;
     }
 }

@@ -22,7 +22,8 @@ public class DBUtility {
                 .append(DBConstants.DOUBLE_QUOTE).append(str).append(DBConstants.DOUBLE_QUOTE).toString();
     }
 
-    public static boolean dropTable(Connection connection, String tableName) throws SQLException {
+    public static boolean dropTable(String tableName) throws SQLException {
+        Connection connection = DBUtility.getConnection();
         StringBuilder dropSQL = new StringBuilder().append(DBConstants.DROP).append(DBConstants.SPACE)
                 .append(DBConstants.TABLE).append(DBConstants.SPACE).append(DBConstants.IF).append(DBConstants.SPACE)
                 .append(DBConstants.EXISTS).append(DBConstants.SPACE).append(tableName).append(" CASCADE");
@@ -30,59 +31,59 @@ public class DBUtility {
             int result = stmt.executeUpdate(dropSQL.toString());
             System.out.println("Dropped table: " + tableName + ", result: " + result);
         }
+        connection.close();
         return true;
     }
 
-    public static boolean clearDB(Connection connection) throws SQLException {
+    public static boolean clearDB() throws SQLException {
+        Connection connection = DBUtility.getConnection();
         StringBuilder getExistingDBSQL = new StringBuilder()
                 .append(DBConstants.SELECT).append(" tablename ").append(DBConstants.FROM).append(" pg_tables ")
                 .append(DBConstants.WHERE).append(" schemaname = 'public'");
 
-        try (Statement stmt = connection.createStatement(); ResultSet rs = stmt.executeQuery(getExistingDBSQL.toString())) {
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(getExistingDBSQL.toString())) {
 
             while (rs.next()) {
                 String tableName = rs.getString("tablename"); // exact column name
-                dropTable(connection, tableName);
+                dropTable(tableName);
             }
         }
+        connection.close();
         return true;
     }
 
-    public static boolean insertMasterData(Connection connection) throws SQLException {
-        return LiftStatesTableUtility.insertLiftStatesData(connection)
-                && LiftBrandsTableUtility.insertLiftBrandsData(connection);
+    public static boolean insertMasterData() throws SQLException {
+        return LiftStatesTableUtility.insertLiftStatesData()
+                && LiftBrandsTableUtility.insertLiftBrandsData();
     }
 
-    public static boolean addRelations(Connection connection) throws SQLException {
-        LiftRequestsTableUtility.addLiftRequestsForeignKey(connection);
-        LiftsTableUtility.addLiftsBrandForeignKey(connection);
-        LiftsTableUtility.addLiftsStateForeignKey(connection);
-        LiftsTableUtility.addLiftsBuildingForeignKey(connection);
+    public static boolean addRelations() throws SQLException {
+        LiftRequestsTableUtility.addLiftRequestsForeignKey();
+        LiftsTableUtility.addLiftsBrandForeignKey();
+        LiftsTableUtility.addLiftsStateForeignKey();
+        LiftsTableUtility.addLiftsBuildingForeignKey();
         return true;
     }
 
-    public static boolean createTables(Connection connection) throws SQLException {
-        LiftsTableUtility.createLiftsTable(connection);
-        LiftRequestsTableUtility.createLiftRequestsTable(connection);
-        LiftBrandsTableUtility.createLiftBrandsTable(connection);
-        LiftStatesTableUtility.createLiftStatesTable(connection);
-        BuildingsTableUtility.createBuildingsTable(connection);
+    public static boolean createTables() throws SQLException {
+        LiftsTableUtility.createLiftsTable();
+        LiftRequestsTableUtility.createLiftRequestsTable();
+        LiftBrandsTableUtility.createLiftBrandsTable();
+        LiftStatesTableUtility.createLiftStatesTable();
+        BuildingsTableUtility.createBuildingsTable();
         return true;
     }
 
-    public static void prepareDB(Connection connection) throws SQLException {
-        clearDB(connection);
-        createTables(connection);
-        addRelations(connection);
-        insertMasterData(connection);
+    public static void prepareDB() throws SQLException {
+        clearDB();
+        createTables();
+        addRelations();
+        insertMasterData();
     }
-
 
     public static synchronized Connection getConnection() throws SQLException {
-        if(connection==null || connection.isClosed()){
-            connection = DriverManager.getConnection(DBConstants.URL, DBConstants.USER, DBConstants.PASSWORD);
-        }
-        return connection;
+        return DriverManager.getConnection(DBConstants.URL, DBConstants.USER, DBConstants.PASSWORD);
     }
 
 }
